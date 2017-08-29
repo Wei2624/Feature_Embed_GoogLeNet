@@ -69,7 +69,8 @@ class CNN_Triplet_Metric(object):
     def CNN_Metric_Model(self,x,load_variables):
         #layer 1 - conv
         w_1 = tf.get_variable(shape=[7,7,3,64], name='InceptionV1/Conv2d_1a_7x7/weights')
-        h_conv1 = tf.nn.conv2d(x, w_1, strides=[1, 2, 2, 1], padding='SAME')
+        b_1 = tf.get_variable(shape=[64],name='InceptionV1/Conv2d_1a_7x7/bias')
+        h_conv1 = tf.nn.conv2d(x, w_1, strides=[1, 2, 2, 1], padding='SAME') + b_1
         #layer 1 - max pool
         h_pool1 = tf.nn.max_pool(h_conv1, ksize=[1, 3, 3, 1],\
                                  strides=[1, 2, 2, 1], padding='SAME')
