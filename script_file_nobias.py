@@ -1,30 +1,11 @@
 import h5py
 import numpy as np
-import sample_generator as sg
 import tensorflow as tf
 import scipy.io
+import collections
+import random
+from tqdm import tqdm
 
-alpha = 0.01
-
-
-def weight_variable(shape):
-    initial = tf.truncated_normal(shape, stddev=0.1)
-    return tf.Variable(initial)
-
-
-def bias_variable(shape):
-    initial = tf.constant(0.1, shape=shape)
-    return tf.Variable(initial)
-
-
-def fc_layer(x, input_dim, output_dim, flat=False, linear=False):
-    W_fc = weight_variable([input_dim, output_dim])
-    b_fc = bias_variable([output_dim])
-    if flat: x = tf.reshape(x, [-1, input_dim])
-    h_fc = tf.add(tf.matmul(x, W_fc), b_fc)
-    if linear: return h_fc
-    return tf.maximum(alpha * h_fc, h_fc)
-#start to construct the model
 
 class CNN_Triplet_Metric(object):
     def __init__(self,sess):
@@ -51,7 +32,7 @@ class CNN_Triplet_Metric(object):
         for i in range(len(class_label)-1):
             img_data_train[i,:,:,:] -= np.float32(image_mean)
 
-        index_a, index_p, index_n = sg.generate_triplet(class_label, 120)
+        index_a, index_p, index_n = self.generate_triplet(class_label, 120)
 
         with tf.variable_scope("") as scope:
             a_output = self.CNN_Metric_Model(self.img_a, True)
@@ -731,6 +712,65 @@ class CNN_Triplet_Metric(object):
         tf.summary.scalar('total_loss', loss)
 
         return loss, eucd_p, eucd_n1, eucd_n2
+
+    def create_indices(self,labels):
+        old = labels[0]
+        indices = dict()
+        indices[old] = 0
+        for x in xrange(len(labels) - 1):
+            new = labels[x + 1]
+            if old != new:
+                indices[new] = x + 1
+            old = new
+        return indices
+
+    def generate_triplet(self,_labels, _n_samples):
+        # retrieve loaded patches and labels
+        labels = _labels
+        # group labels in order to have O(1) search
+        count = collections.Counter(labels)
+        # index the labels in order to have O(1) search
+        indices = self.create_indices(labels)
+        # range for the sampling
+        labels_size = len(labels) - 1
+        # triplets ids
+        _index_1 = []
+        _index_2 = []
+        _index_3 = []
+        # generate the triplets
+        pbar = tqdm(xrange(_n_samples))
+
+        for x in pbar:
+            pbar.set_description('Generating triplets')
+            idx = random.randint(0, labels_size)
+            num_samples = count[labels[idx]]
+            begin_positives = indices[labels[idx]]
+
+            offset_a, offset_p = random.sample(xrange(num_samples), 2)
+            while offset_a == offset_p:
+                offset_a, offset_p = random.sample(xrange(num_samples), 2)
+            idx_a = begin_positives + offset_a
+            idx_p = begin_positives + offset_p
+            _index_1.append(idx_a)
+            _index_2.append(idx_p)
+            idx_n = random.randint(0, labels_size)
+            while labels[idx_n] == labels[idx_a] and \
+                            labels[idx_n] == labels[idx_p]:
+                idx_n = random.randint(0, labels_size)
+            _index_3.append(idx_n)
+
+        _index_1 = np.array(_index_1)
+        _index_2 = np.array(_index_2)
+        _index_3 = np.array(_index_3)
+
+        temp_index = np.arange(_index_1.shape[0])
+
+        np.random.shuffle(temp_index)
+        _index_1 = _index_1[temp_index]
+        _index_2 = _index_2[temp_index]
+        _index_3 = _index_3[temp_index]
+
+        return _index_1, _index_2, _index_3
 
 if __name__ == "__main__":
 
