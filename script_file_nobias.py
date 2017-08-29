@@ -4,7 +4,6 @@ import tensorflow as tf
 import scipy.io
 import collections
 import random
-from tqdm import tqdm
 
 
 class CNN_Triplet_Metric(object):
@@ -16,8 +15,6 @@ class CNN_Triplet_Metric(object):
 
         image_mean = scipy.io.loadmat('image_mean.mat')
         image_mean = image_mean['image_mean']
-
-
 
         # reading matlab v7.3 file using h5py. it has struct with img as a member
         with h5py.File("training_images_crop15_square256.mat") as f:
@@ -32,7 +29,7 @@ class CNN_Triplet_Metric(object):
         for i in range(len(class_label)-1):
             img_data_train[i,:,:,:] -= np.float32(image_mean)
 
-        index_a, index_p, index_n = self.generate_triplet(class_label, 120)
+        index_a, index_p, index_n = self.generate_triplet(class_label, 40)
 
         with tf.variable_scope("") as scope:
             a_output = self.CNN_Metric_Model(self.img_a, True)
@@ -738,7 +735,7 @@ class CNN_Triplet_Metric(object):
         _index_2 = []
         _index_3 = []
         # generate the triplets
-        pbar = tqdm(xrange(_n_samples))
+        pbar = xrange(_n_samples)
 
         for x in pbar:
             pbar.set_description('Generating triplets')
