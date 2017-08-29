@@ -69,8 +69,7 @@ class CNN_Triplet_Metric(object):
     def CNN_Metric_Model(self,x,load_variables):
         #layer 1 - conv
         w_1 = tf.get_variable(shape=[7,7,3,64], name='InceptionV1/Conv2d_1a_7x7/weights')
-        b_1 = tf.get_variable(shape=[64],name='InceptionV1/Conv2d_1a_7x7/bias')
-        h_conv1 = tf.nn.conv2d(x, w_1, strides=[1, 2, 2, 1], padding='SAME') + b_1
+        h_conv1 = tf.nn.conv2d(x, w_1, strides=[1, 2, 2, 1], padding='SAME')
         #layer 1 - max pool
         h_pool1 = tf.nn.max_pool(h_conv1, ksize=[1, 3, 3, 1],\
                                  strides=[1, 2, 2, 1], padding='SAME')
@@ -83,8 +82,7 @@ class CNN_Triplet_Metric(object):
                                               variance=moving_variance_1,scale=None,variance_epsilon=0.001)
         #layer 2 - conv
         w_2 = tf.get_variable(shape=[1,1,64,64], name='InceptionV1/Conv2d_2b_1x1/weights')
-        b_2 = tf.get_variable(shape=[64],name='InceptionV1/Conv2d_2b_1x1/bias')
-        h_conv2 = tf.nn.conv2d(h_bn1, w_2, strides=[1, 1, 1, 1], padding='SAME') + b_2
+        h_conv2 = tf.nn.conv2d(h_bn1, w_2, strides=[1, 1, 1, 1], padding='SAME')
         #layer 2 -  BN
         beta_2 = tf.get_variable(shape=[64],name='InceptionV1/Conv2d_2b_1x1/BatchNorm/beta')
         moving_mean_2 = tf.get_variable(shape=[64],name='InceptionV1/Conv2d_2b_1x1/BatchNorm/moving_mean')
@@ -94,8 +92,7 @@ class CNN_Triplet_Metric(object):
                                               variance=moving_variance_2,scale=None,variance_epsilon=0.001)
         #layer 3 - conv
         w_3 = tf.get_variable(shape=[3,3,64,192], name='InceptionV1/Conv2d_2c_3x3/weights')
-        b_3 = tf.get_variable(shape=[192],name='InceptionV1/Conv2d_2c_3x3/bias')
-        h_conv3 = tf.nn.conv2d(h_bn2, w_3, strides=[1, 1, 1, 1], padding='SAME') + b_3
+        h_conv3 = tf.nn.conv2d(h_bn2, w_3, strides=[1, 1, 1, 1], padding='SAME')
         #layer 3 - BN
         beta_3 = tf.get_variable(shape=[192],name='InceptionV1/Conv2d_2c_3x3/BatchNorm/beta')
         moving_mean_3 = tf.get_variable(shape=[192],name='InceptionV1/Conv2d_2c_3x3/BatchNorm/moving_mean')
@@ -110,8 +107,7 @@ class CNN_Triplet_Metric(object):
         #first inception
         #branch 0
         w_4 = tf.get_variable(shape=[1,1,192,64], name='InceptionV1/Mixed_3b/Branch_0/Conv2d_0a_1x1/weights')
-        b_4 = tf.get_variable(shape=[64],name='InceptionV1/Mixed_3b/Branch_0/Conv2d_0a_1x1/bias')
-        branch1_0 = tf.nn.conv2d(h_pool3, w_4, strides=[1, 1, 1, 1], padding='SAME') + b_4
+        branch1_0 = tf.nn.conv2d(h_pool3, w_4, strides=[1, 1, 1, 1], padding='SAME')
         beta_4 = tf.get_variable(shape=[64],name='InceptionV1/Mixed_3b/Branch_0/Conv2d_0a_1x1/BatchNorm/beta')
         moving_mean_4 = tf.get_variable(shape=[64],name='InceptionV1/Mixed_3b/Branch_0/Conv2d_0a_1x1/BatchNorm/moving_mean')
         moving_variance_4 = tf.get_variable(shape=[64],name='InceptionV1/Mixed_3b/Branch_0/Conv2d_0a_1x1/BatchNorm/moving_variance')
@@ -120,8 +116,7 @@ class CNN_Triplet_Metric(object):
                                               variance=moving_variance_4,scale=None,variance_epsilon=0.001)
         #branch 1
         w_5 = tf.get_variable(shape=[1,1,192,96], name='InceptionV1/Mixed_3b/Branch_1/Conv2d_0a_1x1/weights')
-        b_5 = tf.get_variable(shape=[96],name='InceptionV1/Mixed_3b/Branch_1/Conv2d_0a_1x1/bias')
-        branch1_1 = tf.nn.conv2d(h_pool3, w_5, strides=[1, 1, 1, 1], padding='SAME') + b_5
+        branch1_1 = tf.nn.conv2d(h_pool3, w_5, strides=[1, 1, 1, 1], padding='SAME')
         beta_5 = tf.get_variable(shape=[96],name='InceptionV1/Mixed_3b/Branch_1/Conv2d_0a_1x1/BatchNorm/beta')
         moving_mean_5 = tf.get_variable(shape=[96],name='InceptionV1/Mixed_3b/Branch_1/Conv2d_0a_1x1/BatchNorm/moving_mean')
         moving_variance_5 = tf.get_variable(shape=[96],name='InceptionV1/Mixed_3b/Branch_1/Conv2d_0a_1x1/BatchNorm/moving_variance')
@@ -129,8 +124,7 @@ class CNN_Triplet_Metric(object):
                                               mean=moving_mean_5, \
                                               variance=moving_variance_5,scale=None,variance_epsilon=0.001)
         w_6 = tf.get_variable(shape=[3,3,96,128], name='InceptionV1/Mixed_3b/Branch_1/Conv2d_0b_3x3/weights')
-        b_6 = tf.get_variable(shape=[128],name='InceptionV1/Mixed_3b/Branch_1/Conv2d_0b_3x3/bias')
-        branch1_1 = tf.nn.conv2d(branch1_1, w_6, strides=[1, 1, 1, 1], padding='SAME') + b_6
+        branch1_1 = tf.nn.conv2d(branch1_1, w_6, strides=[1, 1, 1, 1], padding='SAME')
         beta_6 = tf.get_variable(shape=[128],name='InceptionV1/Mixed_3b/Branch_1/Conv2d_0b_3x3/BatchNorm/beta')
         moving_mean_6 = tf.get_variable(shape=[128],name='InceptionV1/Mixed_3b/Branch_1/Conv2d_0b_3x3/BatchNorm/moving_mean')
         moving_variance_6 = tf.get_variable(shape=[128],name='InceptionV1/Mixed_3b/Branch_1/Conv2d_0b_3x3/BatchNorm/moving_variance')
@@ -139,8 +133,7 @@ class CNN_Triplet_Metric(object):
                                               variance=moving_variance_6,scale=None,variance_epsilon=0.001)
         #branch 2
         w_7 = tf.get_variable(shape=[1,1,192,16], name='InceptionV1/Mixed_3b/Branch_2/Conv2d_0a_1x1/weights')
-        b_7 = tf.get_variable(shape=[16],name='InceptionV1/Mixed_3b/Branch_2/Conv2d_0a_1x1/bias')
-        branch1_2 = tf.nn.conv2d(h_pool3, w_7, strides=[1, 1, 1, 1], padding='SAME') + b_7
+        branch1_2 = tf.nn.conv2d(h_pool3, w_7, strides=[1, 1, 1, 1], padding='SAME')
         beta_7 = tf.get_variable(shape=[16],name='InceptionV1/Mixed_3b/Branch_2/Conv2d_0a_1x1/BatchNorm/beta')
         moving_mean_7 = tf.get_variable(shape=[16],name='InceptionV1/Mixed_3b/Branch_2/Conv2d_0a_1x1/BatchNorm/moving_mean')
         moving_variance_7 = tf.get_variable(shape=[16],name='InceptionV1/Mixed_3b/Branch_2/Conv2d_0a_1x1/BatchNorm/moving_variance')
@@ -148,8 +141,7 @@ class CNN_Triplet_Metric(object):
                                               mean=moving_mean_7, \
                                               variance=moving_variance_7,scale=None,variance_epsilon=0.001)
         w_8 = tf.get_variable(shape=[3,3,16,32], name='InceptionV1/Mixed_3b/Branch_2/Conv2d_0b_3x3/weights')
-        b_8 = tf.get_variable(shape=[32],name='InceptionV1/Mixed_3b/Branch_2/Conv2d_0b_3x3/bias')
-        branch1_2 = tf.nn.conv2d(branch1_2, w_8, strides=[1, 1, 1, 1], padding='SAME') + b_8
+        branch1_2 = tf.nn.conv2d(branch1_2, w_8, strides=[1, 1, 1, 1], padding='SAME')
         beta_8 = tf.get_variable(shape=[32],name='InceptionV1/Mixed_3b/Branch_2/Conv2d_0b_3x3/BatchNorm/beta')
         moving_mean_8 = tf.get_variable(shape=[32],name='InceptionV1/Mixed_3b/Branch_2/Conv2d_0b_3x3/BatchNorm/moving_mean')
         moving_variance_8 = tf.get_variable(shape=[32],name='InceptionV1/Mixed_3b/Branch_2/Conv2d_0b_3x3/BatchNorm/moving_variance')
@@ -160,8 +152,7 @@ class CNN_Triplet_Metric(object):
         branch1_3 = tf.nn.max_pool(h_pool3, ksize=[1, 3, 3, 1], \
                                  strides=[1, 1, 1, 1], padding='SAME')
         w_9 = tf.get_variable(shape=[1,1,192,32], name='InceptionV1/Mixed_3b/Branch_3/Conv2d_0b_1x1/weights')
-        b_9 = tf.get_variable(shape=[32],name='InceptionV1/Mixed_3b/Branch_3/Conv2d_0b_1x1/bias')
-        branch1_3 = tf.nn.conv2d(branch1_3, w_9, strides=[1, 1, 1, 1], padding='SAME') + b_9
+        branch1_3 = tf.nn.conv2d(branch1_3, w_9, strides=[1, 1, 1, 1], padding='SAME')
         beta_9 = tf.get_variable(shape=[32],name='InceptionV1/Mixed_3b/Branch_3/Conv2d_0b_1x1/BatchNorm/beta')
         moving_mean_9 = tf.get_variable(shape=[32],name='InceptionV1/Mixed_3b/Branch_3/Conv2d_0b_1x1/BatchNorm/moving_mean')
         moving_variance_9 = tf.get_variable(shape=[32],name='InceptionV1/Mixed_3b/Branch_3/Conv2d_0b_1x1/BatchNorm/moving_variance')
@@ -173,8 +164,7 @@ class CNN_Triplet_Metric(object):
         #second inception
         #branch 0
         w_10 = tf.get_variable(shape=[1,1,256,128], name='InceptionV1/Mixed_3c/Branch_0/Conv2d_0a_1x1/weights')
-        b_10 = tf.get_variable(shape=[128],name='InceptionV1/Mixed_3c/Branch_0/Conv2d_0a_1x1/bias')
-        branch2_0 = tf.nn.conv2d(incpt, w_10, strides=[1, 1, 1, 1], padding='SAME') + b_10
+        branch2_0 = tf.nn.conv2d(incpt, w_10, strides=[1, 1, 1, 1], padding='SAME')
         beta_10 = tf.get_variable(shape=[128],name='InceptionV1/Mixed_3c/Branch_0/Conv2d_0a_1x1/BatchNorm/beta')
         moving_mean_10 = tf.get_variable(shape=[128],name='InceptionV1/Mixed_3c/Branch_0/Conv2d_0a_1x1/BatchNorm/moving_mean')
         moving_variance_10 = tf.get_variable(shape=[128],name='InceptionV1/Mixed_3c/Branch_0/Conv2d_0a_1x1/BatchNorm/moving_variance')
@@ -183,8 +173,7 @@ class CNN_Triplet_Metric(object):
                                               variance=moving_variance_10,scale=None,variance_epsilon=0.001)
         #branch 1
         w_11 = tf.get_variable(shape=[1,1,256,128], name='InceptionV1/Mixed_3c/Branch_1/Conv2d_0a_1x1/weights')
-        b_11 = tf.get_variable(shape=[128],name='InceptionV1/Mixed_3c/Branch_1/Conv2d_0a_1x1/bias')
-        branch2_1 = tf.nn.conv2d(incpt, w_11, strides=[1, 1, 1, 1], padding='SAME') + b_11
+        branch2_1 = tf.nn.conv2d(incpt, w_11, strides=[1, 1, 1, 1], padding='SAME')
         beta_11 = tf.get_variable(shape=[128],name='InceptionV1/Mixed_3c/Branch_1/Conv2d_0a_1x1/BatchNorm/beta')
         moving_mean_11 = tf.get_variable(shape=[128],name='InceptionV1/Mixed_3c/Branch_1/Conv2d_0a_1x1/BatchNorm/moving_mean')
         moving_variance_11 = tf.get_variable(shape=[128],name='InceptionV1/Mixed_3c/Branch_1/Conv2d_0a_1x1/BatchNorm/moving_variance')
@@ -192,8 +181,7 @@ class CNN_Triplet_Metric(object):
                                               mean=moving_mean_11, \
                                               variance=moving_variance_11,scale=None,variance_epsilon=0.001)
         w_12 = tf.get_variable(shape=[3,3,128,192], name='InceptionV1/Mixed_3c/Branch_1/Conv2d_0b_3x3/weights')
-        b_12 = tf.get_variable(shape=[192],name='InceptionV1/Mixed_3c/Branch_1/Conv2d_0b_3x3/bias')
-        branch2_1 = tf.nn.conv2d(branch2_1, w_12, strides=[1, 1, 1, 1], padding='SAME') + b_12
+        branch2_1 = tf.nn.conv2d(branch2_1, w_12, strides=[1, 1, 1, 1], padding='SAME')
         beta_12 = tf.get_variable(shape=[192],name='InceptionV1/Mixed_3c/Branch_1/Conv2d_0b_3x3/BatchNorm/beta')
         moving_mean_12 = tf.get_variable(shape=[192],name='InceptionV1/Mixed_3c/Branch_1/Conv2d_0b_3x3/BatchNorm/moving_mean')
         moving_variance_12 = tf.get_variable(shape=[192],name='InceptionV1/Mixed_3c/Branch_1/Conv2d_0b_3x3/BatchNorm/moving_variance')
@@ -202,8 +190,7 @@ class CNN_Triplet_Metric(object):
                                               variance=moving_variance_12,scale=None,variance_epsilon=0.001)
         #branch 2
         w_13 = tf.get_variable(shape=[1,1,256,32], name='InceptionV1/Mixed_3c/Branch_2/Conv2d_0a_1x1/weights')
-        b_13 = tf.get_variable(shape=[32],name='InceptionV1/Mixed_3c/Branch_2/Conv2d_0a_1x1/bias')
-        branch2_2 = tf.nn.conv2d(incpt, w_13, strides=[1, 1, 1, 1], padding='SAME') + b_13
+        branch2_2 = tf.nn.conv2d(incpt, w_13, strides=[1, 1, 1, 1], padding='SAME')
         beta_13 = tf.get_variable(shape=[32],name='InceptionV1/Mixed_3c/Branch_2/Conv2d_0a_1x1/BatchNorm/beta')
         moving_mean_13 = tf.get_variable(shape=[32],name='InceptionV1/Mixed_3c/Branch_2/Conv2d_0a_1x1/BatchNorm/moving_mean')
         moving_variance_13 = tf.get_variable(shape=[32],name='InceptionV1/Mixed_3c/Branch_2/Conv2d_0a_1x1/BatchNorm/moving_variance')
@@ -211,8 +198,7 @@ class CNN_Triplet_Metric(object):
                                               mean=moving_mean_13, \
                                               variance=moving_variance_13,scale=None,variance_epsilon=0.001)
         w_14 = tf.get_variable(shape=[3,3,32,96], name='InceptionV1/Mixed_3c/Branch_2/Conv2d_0b_3x3/weights')
-        b_14 = tf.get_variable(shape=[96],name='InceptionV1/Mixed_3c/Branch_2/Conv2d_0b_3x3/bias')
-        branch2_2 = tf.nn.conv2d(branch2_2, w_14, strides=[1, 1, 1, 1], padding='SAME') + b_14
+        branch2_2 = tf.nn.conv2d(branch2_2, w_14, strides=[1, 1, 1, 1], padding='SAME')
         beta_14 = tf.get_variable(shape=[96],name='InceptionV1/Mixed_3c/Branch_2/Conv2d_0b_3x3/BatchNorm/beta')
         moving_mean_14 = tf.get_variable(shape=[96],name='InceptionV1/Mixed_3c/Branch_2/Conv2d_0b_3x3/BatchNorm/moving_mean')
         moving_variance_14 = tf.get_variable(shape=[96],name='InceptionV1/Mixed_3c/Branch_2/Conv2d_0b_3x3/BatchNorm/moving_variance')
@@ -223,8 +209,7 @@ class CNN_Triplet_Metric(object):
         branch2_3 = tf.nn.max_pool(incpt, ksize=[1, 3, 3, 1], \
                                  strides=[1, 1, 1, 1], padding='SAME')
         w_15 = tf.get_variable(shape=[1,1,256,64], name='InceptionV1/Mixed_3c/Branch_3/Conv2d_0b_1x1/weights')
-        b_15 = tf.get_variable(shape=[64],name='InceptionV1/Mixed_3c/Branch_3/Conv2d_0b_1x1/bias')
-        branch2_3 = tf.nn.conv2d(branch2_3, w_15, strides=[1, 1, 1, 1], padding='SAME') + b_15
+        branch2_3 = tf.nn.conv2d(branch2_3, w_15, strides=[1, 1, 1, 1], padding='SAME')
         beta_15 = tf.get_variable(shape=[64],name='InceptionV1/Mixed_3c/Branch_3/Conv2d_0b_1x1/BatchNorm/beta')
         moving_mean_15 = tf.get_variable(shape=[64],name='InceptionV1/Mixed_3c/Branch_3/Conv2d_0b_1x1/BatchNorm/moving_mean')
         moving_variance_15 = tf.get_variable(shape=[64],name='InceptionV1/Mixed_3c/Branch_3/Conv2d_0b_1x1/BatchNorm/moving_variance')
@@ -238,8 +223,7 @@ class CNN_Triplet_Metric(object):
         #third inception
         #branch 0
         w_16 = tf.get_variable(shape=[1,1,480,192], name='InceptionV1/Mixed_4b/Branch_0/Conv2d_0a_1x1/weights')
-        b_16 = tf.get_variable(shape=[192],name='InceptionV1/Mixed_4b/Branch_0/Conv2d_0a_1x1/bias')
-        branch3_0 = tf.nn.conv2d(incpt, w_16, strides=[1, 1, 1, 1], padding='SAME') + b_16
+        branch3_0 = tf.nn.conv2d(incpt, w_16, strides=[1, 1, 1, 1], padding='SAME')
         beta_16 = tf.get_variable(shape=[192],name='InceptionV1/Mixed_4b/Branch_0/Conv2d_0a_1x1/BatchNorm/beta')
         moving_mean_16 = tf.get_variable(shape=[192],name='InceptionV1/Mixed_4b/Branch_0/Conv2d_0a_1x1/BatchNorm/moving_mean')
         moving_variance_16 = tf.get_variable(shape=[192],name='InceptionV1/Mixed_4b/Branch_0/Conv2d_0a_1x1/BatchNorm/moving_variance')
@@ -248,8 +232,7 @@ class CNN_Triplet_Metric(object):
                                               variance=moving_variance_16,scale=None,variance_epsilon=0.001)
         #branch 1
         w_17 = tf.get_variable(shape=[1,1,480,96], name='InceptionV1/Mixed_4b/Branch_1/Conv2d_0a_1x1/weights')
-        b_17 = tf.get_variable(shape=[96],name='InceptionV1/Mixed_4b/Branch_1/Conv2d_0a_1x1/bias')
-        branch3_1 = tf.nn.conv2d(incpt, w_17, strides=[1, 1, 1, 1], padding='SAME') + b_17
+        branch3_1 = tf.nn.conv2d(incpt, w_17, strides=[1, 1, 1, 1], padding='SAME')
         beta_17 = tf.get_variable(shape=[96],name='InceptionV1/Mixed_4b/Branch_1/Conv2d_0a_1x1/BatchNorm/beta')
         moving_mean_17 = tf.get_variable(shape=[96],name='InceptionV1/Mixed_4b/Branch_1/Conv2d_0a_1x1/BatchNorm/moving_mean')
         moving_variance_17 = tf.get_variable(shape=[96],name='InceptionV1/Mixed_4b/Branch_1/Conv2d_0a_1x1/BatchNorm/moving_variance')
@@ -257,8 +240,7 @@ class CNN_Triplet_Metric(object):
                                               mean=moving_mean_17, \
                                               variance=moving_variance_17,scale=None,variance_epsilon=0.001)
         w_18 = tf.get_variable(shape=[3,3,96,208], name='InceptionV1/Mixed_4b/Branch_1/Conv2d_0b_3x3/weights')
-        b_18 = tf.get_variable(shape=[208],name='InceptionV1/Mixed_4b/Branch_1/Conv2d_0b_3x3/bias')
-        branch3_1 = tf.nn.conv2d(branch3_1, w_18, strides=[1, 1, 1, 1], padding='SAME') + b_18
+        branch3_1 = tf.nn.conv2d(branch3_1, w_18, strides=[1, 1, 1, 1], padding='SAME')
         beta_18 = tf.get_variable(shape=[208],name='InceptionV1/Mixed_4b/Branch_1/Conv2d_0b_3x3/BatchNorm/beta')
         moving_mean_18 = tf.get_variable(shape=[208],name='InceptionV1/Mixed_4b/Branch_1/Conv2d_0b_3x3/BatchNorm/moving_mean')
         moving_variance_18 = tf.get_variable(shape=[208],name='InceptionV1/Mixed_4b/Branch_1/Conv2d_0b_3x3/BatchNorm/moving_variance')
@@ -267,8 +249,7 @@ class CNN_Triplet_Metric(object):
                                               variance=moving_variance_18,scale=None,variance_epsilon=0.001)
         #branch 2
         w_19 = tf.get_variable(shape=[1,1,480,16], name='InceptionV1/Mixed_4b/Branch_2/Conv2d_0a_1x1/weights')
-        b_19 = tf.get_variable(shape=[16],name='InceptionV1/Mixed_4b/Branch_2/Conv2d_0a_1x1/bias')
-        branch3_2 = tf.nn.conv2d(incpt, w_19, strides=[1, 1, 1, 1], padding='SAME') + b_19
+        branch3_2 = tf.nn.conv2d(incpt, w_19, strides=[1, 1, 1, 1], padding='SAME')
         beta_19 = tf.get_variable(shape=[16],name='InceptionV1/Mixed_4b/Branch_2/Conv2d_0a_1x1/BatchNorm/beta')
         moving_mean_19 = tf.get_variable(shape=[16],name='InceptionV1/Mixed_4b/Branch_2/Conv2d_0a_1x1/BatchNorm/moving_mean')
         moving_variance_19 = tf.get_variable(shape=[16],name='InceptionV1/Mixed_4b/Branch_2/Conv2d_0a_1x1/BatchNorm/moving_variance')
@@ -276,8 +257,7 @@ class CNN_Triplet_Metric(object):
                                               mean=moving_mean_19, \
                                               variance=moving_variance_19,scale=None,variance_epsilon=0.001)
         w_20 = tf.get_variable(shape=[3,3,16,48], name='InceptionV1/Mixed_4b/Branch_2/Conv2d_0b_3x3/weights')
-        b_20 = tf.get_variable(shape=[48],name='InceptionV1/Mixed_4b/Branch_2/Conv2d_0b_3x3/bias')
-        branch3_2 = tf.nn.conv2d(branch3_2, w_20, strides=[1, 1, 1, 1], padding='SAME') + b_20
+        branch3_2 = tf.nn.conv2d(branch3_2, w_20, strides=[1, 1, 1, 1], padding='SAME')
         beta_20 = tf.get_variable(shape=[48],name='InceptionV1/Mixed_4b/Branch_2/Conv2d_0b_3x3/BatchNorm/beta')
         moving_mean_20 = tf.get_variable(shape=[48],name='InceptionV1/Mixed_4b/Branch_2/Conv2d_0b_3x3/BatchNorm/moving_mean')
         moving_variance_20 = tf.get_variable(shape=[48],name='InceptionV1/Mixed_4b/Branch_2/Conv2d_0b_3x3/BatchNorm/moving_variance')
@@ -288,8 +268,7 @@ class CNN_Triplet_Metric(object):
         branch3_3 = tf.nn.max_pool(incpt, ksize=[1, 3, 3, 1], \
                                  strides=[1, 1, 1, 1], padding='SAME')
         w_21 = tf.get_variable(shape=[1,1,480,64], name='InceptionV1/Mixed_4b/Branch_3/Conv2d_0b_1x1/weights')
-        b_21 = tf.get_variable(shape=[64],name='InceptionV1/Mixed_4b/Branch_3/Conv2d_0b_1x1/bias')
-        branch3_3 = tf.nn.conv2d(branch3_3, w_21, strides=[1, 1, 1, 1], padding='SAME') + b_21
+        branch3_3 = tf.nn.conv2d(branch3_3, w_21, strides=[1, 1, 1, 1], padding='SAME')
         beta_21 = tf.get_variable(shape=[64],name='InceptionV1/Mixed_4b/Branch_3/Conv2d_0b_1x1/BatchNorm/beta')
         moving_mean_21 = tf.get_variable(shape=[64],name='InceptionV1/Mixed_4b/Branch_3/Conv2d_0b_1x1/BatchNorm/moving_mean')
         moving_variance_21 = tf.get_variable(shape=[64],name='InceptionV1/Mixed_4b/Branch_3/Conv2d_0b_1x1/BatchNorm/moving_variance')
@@ -301,8 +280,7 @@ class CNN_Triplet_Metric(object):
         #fourth inception
         #branch 0
         w_22 = tf.get_variable(shape=[1,1,512,160], name='InceptionV1/Mixed_4c/Branch_0/Conv2d_0a_1x1/weights')
-        b_22 = tf.get_variable(shape=[160],name='InceptionV1/Mixed_4c/Branch_0/Conv2d_0a_1x1/bias')
-        branch4_0 = tf.nn.conv2d(incpt, w_22, strides=[1, 1, 1, 1], padding='SAME') + b_22
+        branch4_0 = tf.nn.conv2d(incpt, w_22, strides=[1, 1, 1, 1], padding='SAME')
         beta_22 = tf.get_variable(shape=[160],name='InceptionV1/Mixed_4c/Branch_0/Conv2d_0a_1x1/BatchNorm/beta')
         moving_mean_22 = tf.get_variable(shape=[160],name='InceptionV1/Mixed_4c/Branch_0/Conv2d_0a_1x1/BatchNorm/moving_mean')
         moving_variance_22 = tf.get_variable(shape=[160],name='InceptionV1/Mixed_4c/Branch_0/Conv2d_0a_1x1/BatchNorm/moving_variance')
@@ -311,8 +289,7 @@ class CNN_Triplet_Metric(object):
                                               variance=moving_variance_22,scale=None,variance_epsilon=0.001)
         #branch 1
         w_23 = tf.get_variable(shape=[1,1,512,112], name='InceptionV1/Mixed_4c/Branch_1/Conv2d_0a_1x1/weights')
-        b_23 = tf.get_variable(shape=[112],name='InceptionV1/Mixed_4c/Branch_1/Conv2d_0a_1x1/bias')
-        branch4_1 = tf.nn.conv2d(incpt, w_23, strides=[1, 1, 1, 1], padding='SAME') + b_23
+        branch4_1 = tf.nn.conv2d(incpt, w_23, strides=[1, 1, 1, 1], padding='SAME')
         beta_23 = tf.get_variable(shape=[112],name='InceptionV1/Mixed_4c/Branch_1/Conv2d_0a_1x1/BatchNorm/beta')
         moving_mean_23 = tf.get_variable(shape=[112],name='InceptionV1/Mixed_4c/Branch_1/Conv2d_0a_1x1/BatchNorm/moving_mean')
         moving_variance_23 = tf.get_variable(shape=[112],name='InceptionV1/Mixed_4c/Branch_1/Conv2d_0a_1x1/BatchNorm/moving_variance')
@@ -320,8 +297,7 @@ class CNN_Triplet_Metric(object):
                                               mean=moving_mean_23, \
                                               variance=moving_variance_23,scale=None,variance_epsilon=0.001)
         w_24 = tf.get_variable(shape=[3,3,112,224], name='InceptionV1/Mixed_4c/Branch_1/Conv2d_0b_3x3/weights')
-        b_24 = tf.get_variable(shape=[224],name='InceptionV1/Mixed_4c/Branch_1/Conv2d_0b_3x3/bias')
-        branch4_1 = tf.nn.conv2d(branch4_1, w_24, strides=[1, 1, 1, 1], padding='SAME') + b_24
+        branch4_1 = tf.nn.conv2d(branch4_1, w_24, strides=[1, 1, 1, 1], padding='SAME')
         beta_24 = tf.get_variable(shape=[224],name='InceptionV1/Mixed_4c/Branch_1/Conv2d_0b_3x3/BatchNorm/beta')
         moving_mean_24 = tf.get_variable(shape=[224],name='InceptionV1/Mixed_4c/Branch_1/Conv2d_0b_3x3/BatchNorm/moving_mean')
         moving_variance_24 = tf.get_variable(shape=[224],name='InceptionV1/Mixed_4c/Branch_1/Conv2d_0b_3x3/BatchNorm/moving_variance')
@@ -330,8 +306,7 @@ class CNN_Triplet_Metric(object):
                                               variance=moving_variance_24,scale=None,variance_epsilon=0.001)
         #branch 2
         w_25 = tf.get_variable(shape=[1,1,512,24], name='InceptionV1/Mixed_4c/Branch_2/Conv2d_0a_1x1/weights')
-        b_25 = tf.get_variable(shape=[24],name='InceptionV1/Mixed_4c/Branch_2/Conv2d_0a_1x1/bias')
-        branch4_2 = tf.nn.conv2d(incpt, w_25, strides=[1, 1, 1, 1], padding='SAME') + b_25
+        branch4_2 = tf.nn.conv2d(incpt, w_25, strides=[1, 1, 1, 1], padding='SAME')
         beta_25 = tf.get_variable(shape=[24],name='InceptionV1/Mixed_4c/Branch_2/Conv2d_0a_1x1/BatchNorm/beta')
         moving_mean_25 = tf.get_variable(shape=[24],name='InceptionV1/Mixed_4c/Branch_2/Conv2d_0a_1x1/BatchNorm/moving_mean')
         moving_variance_25 = tf.get_variable(shape=[24],name='InceptionV1/Mixed_4c/Branch_2/Conv2d_0a_1x1/BatchNorm/moving_variance')
@@ -339,8 +314,7 @@ class CNN_Triplet_Metric(object):
                                               mean=moving_mean_25, \
                                               variance=moving_variance_25,scale=None,variance_epsilon=0.001)
         w_26 = tf.get_variable(shape=[3,3,24,64], name='InceptionV1/Mixed_4c/Branch_2/Conv2d_0b_3x3/weights')
-        b_26 = tf.get_variable(shape=[64],name='InceptionV1/Mixed_4c/Branch_2/Conv2d_0b_3x3/bias')
-        branch4_2 = tf.nn.conv2d(branch4_2, w_26, strides=[1, 1, 1, 1], padding='SAME') + b_26
+        branch4_2 = tf.nn.conv2d(branch4_2, w_26, strides=[1, 1, 1, 1], padding='SAME')
         beta_26 = tf.get_variable(shape=[64],name='InceptionV1/Mixed_4c/Branch_2/Conv2d_0b_3x3/BatchNorm/beta')
         moving_mean_26 = tf.get_variable(shape=[64],name='InceptionV1/Mixed_4c/Branch_2/Conv2d_0b_3x3/BatchNorm/moving_mean')
         moving_variance_26 = tf.get_variable(shape=[64],name='InceptionV1/Mixed_4c/Branch_2/Conv2d_0b_3x3/BatchNorm/moving_variance')
@@ -351,8 +325,7 @@ class CNN_Triplet_Metric(object):
         branch4_3 = tf.nn.max_pool(incpt, ksize=[1, 3, 3, 1], \
                                  strides=[1, 1, 1, 1], padding='SAME')
         w_27 = tf.get_variable(shape=[1,1,512,64], name='InceptionV1/Mixed_4c/Branch_3/Conv2d_0b_1x1/weights')
-        b_27 = tf.get_variable(shape=[64],name='InceptionV1/Mixed_4c/Branch_3/Conv2d_0b_1x1/bias')
-        branch4_3 = tf.nn.conv2d(branch4_3, w_27, strides=[1, 1, 1, 1], padding='SAME') + b_27
+        branch4_3 = tf.nn.conv2d(branch4_3, w_27, strides=[1, 1, 1, 1], padding='SAME')
         beta_27 = tf.get_variable(shape=[64],name='InceptionV1/Mixed_4c/Branch_3/Conv2d_0b_1x1/BatchNorm/beta')
         moving_mean_27 = tf.get_variable(shape=[64],name='InceptionV1/Mixed_4c/Branch_3/Conv2d_0b_1x1/BatchNorm/moving_mean')
         moving_variance_27 = tf.get_variable(shape=[64],name='InceptionV1/Mixed_4c/Branch_3/Conv2d_0b_1x1/BatchNorm/moving_variance')
@@ -364,8 +337,7 @@ class CNN_Triplet_Metric(object):
         #fifth inception
         #branch 0
         w_28 = tf.get_variable(shape=[1,1,512,128], name='InceptionV1/Mixed_4d/Branch_0/Conv2d_0a_1x1/weights')
-        b_28 = tf.get_variable(shape=[128],name='InceptionV1/Mixed_4d/Branch_0/Conv2d_0a_1x1/bias')
-        branch5_0 = tf.nn.conv2d(incpt, w_28, strides=[1, 1, 1, 1], padding='SAME') + b_28
+        branch5_0 = tf.nn.conv2d(incpt, w_28, strides=[1, 1, 1, 1], padding='SAME')
         beta_28 = tf.get_variable(shape=[128],name='InceptionV1/Mixed_4d/Branch_0/Conv2d_0a_1x1/BatchNorm/beta')
         moving_mean_28 = tf.get_variable(shape=[128],name='InceptionV1/Mixed_4d/Branch_0/Conv2d_0a_1x1/BatchNorm/moving_mean')
         moving_variance_28 = tf.get_variable(shape=[128],name='InceptionV1/Mixed_4d/Branch_0/Conv2d_0a_1x1/BatchNorm/moving_variance')
@@ -374,8 +346,7 @@ class CNN_Triplet_Metric(object):
                                               variance=moving_variance_28,scale=None,variance_epsilon=0.001)
         #branch 1
         w_29 = tf.get_variable(shape=[1,1,512,128], name='InceptionV1/Mixed_4d/Branch_1/Conv2d_0a_1x1/weights')
-        b_29 = tf.get_variable(shape=[128],name='InceptionV1/Mixed_4d/Branch_1/Conv2d_0a_1x1/bias')
-        branch5_1 = tf.nn.conv2d(incpt, w_29, strides=[1, 1, 1, 1], padding='SAME') + b_29
+        branch5_1 = tf.nn.conv2d(incpt, w_29, strides=[1, 1, 1, 1], padding='SAME')
         beta_29 = tf.get_variable(shape=[128],name='InceptionV1/Mixed_4d/Branch_1/Conv2d_0a_1x1/BatchNorm/beta')
         moving_mean_29 = tf.get_variable(shape=[128],name='InceptionV1/Mixed_4d/Branch_1/Conv2d_0a_1x1/BatchNorm/moving_mean')
         moving_variance_29 = tf.get_variable(shape=[128],name='InceptionV1/Mixed_4d/Branch_1/Conv2d_0a_1x1/BatchNorm/moving_variance')
@@ -383,8 +354,7 @@ class CNN_Triplet_Metric(object):
                                               mean=moving_mean_29, \
                                               variance=moving_variance_29,scale=None,variance_epsilon=0.001)
         w_30 = tf.get_variable(shape=[3,3,128,256], name='InceptionV1/Mixed_4d/Branch_1/Conv2d_0b_3x3/weights')
-        b_30 = tf.get_variable(shape=[256],name='InceptionV1/Mixed_4d/Branch_1/Conv2d_0b_3x3/bias')
-        branch5_1 = tf.nn.conv2d(branch5_1, w_30, strides=[1, 1, 1, 1], padding='SAME') + b_30
+        branch5_1 = tf.nn.conv2d(branch5_1, w_30, strides=[1, 1, 1, 1], padding='SAME')
         beta_30 = tf.get_variable(shape=[256],name='InceptionV1/Mixed_4d/Branch_1/Conv2d_0b_3x3/BatchNorm/beta')
         moving_mean_30 = tf.get_variable(shape=[256],name='InceptionV1/Mixed_4d/Branch_1/Conv2d_0b_3x3/BatchNorm/moving_mean')
         moving_variance_30 = tf.get_variable(shape=[256],name='InceptionV1/Mixed_4d/Branch_1/Conv2d_0b_3x3/BatchNorm/moving_variance')
@@ -393,8 +363,7 @@ class CNN_Triplet_Metric(object):
                                               variance=moving_variance_30,scale=None,variance_epsilon=0.001)
         #branch 2
         w_31 = tf.get_variable(shape=[1,1,512,24], name='InceptionV1/Mixed_4d/Branch_2/Conv2d_0a_1x1/weights')
-        b_31 = tf.get_variable(shape=[24],name='InceptionV1/Mixed_4d/Branch_2/Conv2d_0a_1x1/bias')
-        branch5_2 = tf.nn.conv2d(incpt, w_31, strides=[1, 1, 1, 1], padding='SAME') + b_31
+        branch5_2 = tf.nn.conv2d(incpt, w_31, strides=[1, 1, 1, 1], padding='SAME')
         beta_31 = tf.get_variable(shape=[24],name='InceptionV1/Mixed_4d/Branch_2/Conv2d_0a_1x1/BatchNorm/beta')
         moving_mean_31 = tf.get_variable(shape=[24],name='InceptionV1/Mixed_4d/Branch_2/Conv2d_0a_1x1/BatchNorm/moving_mean')
         moving_variance_31 = tf.get_variable(shape=[24],name='InceptionV1/Mixed_4d/Branch_2/Conv2d_0a_1x1/BatchNorm/moving_variance')
@@ -402,8 +371,7 @@ class CNN_Triplet_Metric(object):
                                               mean=moving_mean_31, \
                                               variance=moving_variance_31,scale=None,variance_epsilon=0.001)
         w_32 = tf.get_variable(shape=[3,3,24,64], name='InceptionV1/Mixed_4d/Branch_2/Conv2d_0b_3x3/weights')
-        b_32 = tf.get_variable(shape=[64],name='InceptionV1/Mixed_4d/Branch_2/Conv2d_0b_3x3/bias')
-        branch5_2 = tf.nn.conv2d(branch5_2, w_32, strides=[1, 1, 1, 1], padding='SAME') + b_32
+        branch5_2 = tf.nn.conv2d(branch5_2, w_32, strides=[1, 1, 1, 1], padding='SAME')
         beta_32 = tf.get_variable(shape=[64],name='InceptionV1/Mixed_4d/Branch_2/Conv2d_0b_3x3/BatchNorm/beta')
         moving_mean_32 = tf.get_variable(shape=[64],name='InceptionV1/Mixed_4d/Branch_2/Conv2d_0b_3x3/BatchNorm/moving_mean')
         moving_variance_32 = tf.get_variable(shape=[64],name='InceptionV1/Mixed_4d/Branch_2/Conv2d_0b_3x3/BatchNorm/moving_variance')
@@ -414,8 +382,7 @@ class CNN_Triplet_Metric(object):
         branch5_3 = tf.nn.max_pool(incpt, ksize=[1, 3, 3, 1], \
                                  strides=[1, 1, 1, 1], padding='SAME')
         w_33 = tf.get_variable(shape=[1,1,512,64], name='InceptionV1/Mixed_4d/Branch_3/Conv2d_0b_1x1/weights')
-        b_33 = tf.get_variable(shape=[64],name='InceptionV1/Mixed_4d/Branch_3/Conv2d_0b_1x1/bias')
-        branch5_3 = tf.nn.conv2d(branch5_3, w_33, strides=[1, 1, 1, 1], padding='SAME') + b_33
+        branch5_3 = tf.nn.conv2d(branch5_3, w_33, strides=[1, 1, 1, 1], padding='SAME')
         beta_33 = tf.get_variable(shape=[64],name='InceptionV1/Mixed_4d/Branch_3/Conv2d_0b_1x1/BatchNorm/beta')
         moving_mean_33 = tf.get_variable(shape=[64],name='InceptionV1/Mixed_4d/Branch_3/Conv2d_0b_1x1/BatchNorm/moving_mean')
         moving_variance_33 = tf.get_variable(shape=[64],name='InceptionV1/Mixed_4d/Branch_3/Conv2d_0b_1x1/BatchNorm/moving_variance')
@@ -427,8 +394,7 @@ class CNN_Triplet_Metric(object):
         #sixth inception
         #branch 0
         w_34 = tf.get_variable(shape=[1,1,512,112], name='InceptionV1/Mixed_4e/Branch_0/Conv2d_0a_1x1/weights')
-        b_34 = tf.get_variable(shape=[112],name='InceptionV1/Mixed_4e/Branch_0/Conv2d_0a_1x1/bias')
-        branch6_0 = tf.nn.conv2d(incpt, w_34, strides=[1, 1, 1, 1], padding='SAME') + b_34
+        branch6_0 = tf.nn.conv2d(incpt, w_34, strides=[1, 1, 1, 1], padding='SAME')
         beta_34 = tf.get_variable(shape=[112],name='InceptionV1/Mixed_4e/Branch_0/Conv2d_0a_1x1/BatchNorm/beta')
         moving_mean_34 = tf.get_variable(shape=[112],name='InceptionV1/Mixed_4e/Branch_0/Conv2d_0a_1x1/BatchNorm/moving_mean')
         moving_variance_34 = tf.get_variable(shape=[112],name='InceptionV1/Mixed_4e/Branch_0/Conv2d_0a_1x1/BatchNorm/moving_variance')
@@ -437,8 +403,7 @@ class CNN_Triplet_Metric(object):
                                               variance=moving_variance_34,scale=None,variance_epsilon=0.001)
         #branch 1
         w_35 = tf.get_variable(shape=[1,1,512,144], name='InceptionV1/Mixed_4e/Branch_1/Conv2d_0a_1x1/weights')
-        b_35 = tf.get_variable(shape=[144],name='InceptionV1/Mixed_4e/Branch_1/Conv2d_0a_1x1/bias')
-        branch6_1 = tf.nn.conv2d(incpt, w_35, strides=[1, 1, 1, 1], padding='SAME') + b_35
+        branch6_1 = tf.nn.conv2d(incpt, w_35, strides=[1, 1, 1, 1], padding='SAME')
         beta_35 = tf.get_variable(shape=[144],name='InceptionV1/Mixed_4e/Branch_1/Conv2d_0a_1x1/BatchNorm/beta')
         moving_mean_35 = tf.get_variable(shape=[144],name='InceptionV1/Mixed_4e/Branch_1/Conv2d_0a_1x1/BatchNorm/moving_mean')
         moving_variance_35 = tf.get_variable(shape=[144],name='InceptionV1/Mixed_4e/Branch_1/Conv2d_0a_1x1/BatchNorm/moving_variance')
@@ -446,8 +411,7 @@ class CNN_Triplet_Metric(object):
                                               mean=moving_mean_35, \
                                               variance=moving_variance_35,scale=None,variance_epsilon=0.001)
         w_36 = tf.get_variable(shape=[3,3,144,288], name='InceptionV1/Mixed_4e/Branch_1/Conv2d_0b_3x3/weights')
-        b_36 = tf.get_variable(shape=[288],name='InceptionV1/Mixed_4e/Branch_1/Conv2d_0b_3x3/bias')
-        branch6_1 = tf.nn.conv2d(branch6_1, w_36, strides=[1, 1, 1, 1], padding='SAME') + b_36
+        branch6_1 = tf.nn.conv2d(branch6_1, w_36, strides=[1, 1, 1, 1], padding='SAME')
         beta_36 = tf.get_variable(shape=[288],name='InceptionV1/Mixed_4e/Branch_1/Conv2d_0b_3x3/BatchNorm/beta')
         moving_mean_36 = tf.get_variable(shape=[288],name='InceptionV1/Mixed_4e/Branch_1/Conv2d_0b_3x3/BatchNorm/moving_mean')
         moving_variance_36 = tf.get_variable(shape=[288],name='InceptionV1/Mixed_4e/Branch_1/Conv2d_0b_3x3/BatchNorm/moving_variance')
@@ -456,8 +420,7 @@ class CNN_Triplet_Metric(object):
                                               variance=moving_variance_36,scale=None,variance_epsilon=0.001)
         #branch 2
         w_37 = tf.get_variable(shape=[1,1,512,32], name='InceptionV1/Mixed_4e/Branch_2/Conv2d_0a_1x1/weights')
-        b_37 = tf.get_variable(shape=[32],name='InceptionV1/Mixed_4e/Branch_2/Conv2d_0a_1x1/bias')
-        branch6_2 = tf.nn.conv2d(incpt, w_37, strides=[1, 1, 1, 1], padding='SAME') + b_37
+        branch6_2 = tf.nn.conv2d(incpt, w_37, strides=[1, 1, 1, 1], padding='SAME')
         beta_37 = tf.get_variable(shape=[32],name='InceptionV1/Mixed_4e/Branch_2/Conv2d_0a_1x1/BatchNorm/beta')
         moving_mean_37 = tf.get_variable(shape=[32],name='InceptionV1/Mixed_4e/Branch_2/Conv2d_0a_1x1/BatchNorm/moving_mean')
         moving_variance_37 = tf.get_variable(shape=[32],name='InceptionV1/Mixed_4e/Branch_2/Conv2d_0a_1x1/BatchNorm/moving_variance')
@@ -465,8 +428,7 @@ class CNN_Triplet_Metric(object):
                                               mean=moving_mean_37, \
                                               variance=moving_variance_37,scale=None,variance_epsilon=0.001)
         w_38 = tf.get_variable(shape=[3,3,32,64], name='InceptionV1/Mixed_4e/Branch_2/Conv2d_0b_3x3/weights')
-        b_38 = tf.get_variable(shape=[64],name='InceptionV1/Mixed_4e/Branch_2/Conv2d_0b_3x3/bias')
-        branch6_2 = tf.nn.conv2d(branch6_2, w_38, strides=[1, 1, 1, 1], padding='SAME') + b_38
+        branch6_2 = tf.nn.conv2d(branch6_2, w_38, strides=[1, 1, 1, 1], padding='SAME')
         beta_38 = tf.get_variable(shape=[64],name='InceptionV1/Mixed_4e/Branch_2/Conv2d_0b_3x3/BatchNorm/beta')
         moving_mean_38 = tf.get_variable(shape=[64],name='InceptionV1/Mixed_4e/Branch_2/Conv2d_0b_3x3/BatchNorm/moving_mean')
         moving_variance_38 = tf.get_variable(shape=[64],name='InceptionV1/Mixed_4e/Branch_2/Conv2d_0b_3x3/BatchNorm/moving_variance')
@@ -477,8 +439,7 @@ class CNN_Triplet_Metric(object):
         branch6_3 = tf.nn.max_pool(incpt, ksize=[1, 3, 3, 1], \
                                  strides=[1, 1, 1, 1], padding='SAME')
         w_39 = tf.get_variable(shape=[1,1,512,64], name='InceptionV1/Mixed_4e/Branch_3/Conv2d_0b_1x1/weights')
-        b_39 = tf.get_variable(shape=[64],name='InceptionV1/Mixed_4e/Branch_3/Conv2d_0b_1x1/bias')
-        branch6_3 = tf.nn.conv2d(branch6_3, w_39, strides=[1, 1, 1, 1], padding='SAME') + b_39
+        branch6_3 = tf.nn.conv2d(branch6_3, w_39, strides=[1, 1, 1, 1], padding='SAME')
         beta_39 = tf.get_variable(shape=[64],name='InceptionV1/Mixed_4e/Branch_3/Conv2d_0b_1x1/BatchNorm/beta')
         moving_mean_39 = tf.get_variable(shape=[64],name='InceptionV1/Mixed_4e/Branch_3/Conv2d_0b_1x1/BatchNorm/moving_mean')
         moving_variance_39 = tf.get_variable(shape=[64],name='InceptionV1/Mixed_4e/Branch_3/Conv2d_0b_1x1/BatchNorm/moving_variance')
@@ -490,8 +451,7 @@ class CNN_Triplet_Metric(object):
         #seventh inception
         #branch 0
         w_40 = tf.get_variable(shape=[1,1,528,256], name='InceptionV1/Mixed_4f/Branch_0/Conv2d_0a_1x1/weights')
-        b_40 = tf.get_variable(shape=[256],name='InceptionV1/Mixed_4f/Branch_0/Conv2d_0a_1x1/bias')
-        branch7_0 = tf.nn.conv2d(incpt, w_40, strides=[1, 1, 1, 1], padding='SAME') + b_40
+        branch7_0 = tf.nn.conv2d(incpt, w_40, strides=[1, 1, 1, 1], padding='SAME')
         beta_40 = tf.get_variable(shape=[256],name='InceptionV1/Mixed_4f/Branch_0/Conv2d_0a_1x1/BatchNorm/beta')
         moving_mean_40 = tf.get_variable(shape=[256],name='InceptionV1/Mixed_4f/Branch_0/Conv2d_0a_1x1/BatchNorm/moving_mean')
         moving_variance_40 = tf.get_variable(shape=[256],name='InceptionV1/Mixed_4f/Branch_0/Conv2d_0a_1x1/BatchNorm/moving_variance')
@@ -500,8 +460,7 @@ class CNN_Triplet_Metric(object):
                                               variance=moving_variance_40,scale=None,variance_epsilon=0.001)
         #branch 1
         w_41 = tf.get_variable(shape=[1,1,528,160], name='InceptionV1/Mixed_4f/Branch_1/Conv2d_0a_1x1/weights')
-        b_41 = tf.get_variable(shape=[160],name='InceptionV1/Mixed_4f/Branch_1/Conv2d_0a_1x1/bias')
-        branch7_1 = tf.nn.conv2d(incpt, w_41, strides=[1, 1, 1, 1], padding='SAME') + b_41
+        branch7_1 = tf.nn.conv2d(incpt, w_41, strides=[1, 1, 1, 1], padding='SAME')
         beta_41 = tf.get_variable(shape=[160],name='InceptionV1/Mixed_4f/Branch_1/Conv2d_0a_1x1/BatchNorm/beta')
         moving_mean_41 = tf.get_variable(shape=[160],name='InceptionV1/Mixed_4f/Branch_1/Conv2d_0a_1x1/BatchNorm/moving_mean')
         moving_variance_41 = tf.get_variable(shape=[160],name='InceptionV1/Mixed_4f/Branch_1/Conv2d_0a_1x1/BatchNorm/moving_variance')
@@ -509,8 +468,7 @@ class CNN_Triplet_Metric(object):
                                               mean=moving_mean_41, \
                                               variance=moving_variance_41,scale=None,variance_epsilon=0.001)
         w_42 = tf.get_variable(shape=[3,3,160,320], name='InceptionV1/Mixed_4f/Branch_1/Conv2d_0b_3x3/weights')
-        b_42 = tf.get_variable(shape=[320],name='InceptionV1/Mixed_4f/Branch_1/Conv2d_0b_3x3/bias')
-        branch7_1 = tf.nn.conv2d(branch7_1, w_42, strides=[1, 1, 1, 1], padding='SAME') + b_42
+        branch7_1 = tf.nn.conv2d(branch7_1, w_42, strides=[1, 1, 1, 1], padding='SAME')
         beta_42 = tf.get_variable(shape=[320],name='InceptionV1/Mixed_4f/Branch_1/Conv2d_0b_3x3/BatchNorm/beta')
         moving_mean_42 = tf.get_variable(shape=[320],name='InceptionV1/Mixed_4f/Branch_1/Conv2d_0b_3x3/BatchNorm/moving_mean')
         moving_variance_42 = tf.get_variable(shape=[320],name='InceptionV1/Mixed_4f/Branch_1/Conv2d_0b_3x3/BatchNorm/moving_variance')
@@ -519,8 +477,7 @@ class CNN_Triplet_Metric(object):
                                               variance=moving_variance_42,scale=None,variance_epsilon=0.001)
         #branch 2
         w_43 = tf.get_variable(shape=[1,1,528,32], name='InceptionV1/Mixed_4f/Branch_2/Conv2d_0a_1x1/weights')
-        b_43 = tf.get_variable(shape=[32],name='IInceptionV1/Mixed_4f/Branch_2/Conv2d_0a_1x1/bias')
-        branch7_2 = tf.nn.conv2d(incpt, w_43, strides=[1, 1, 1, 1], padding='SAME') + b_43
+        branch7_2 = tf.nn.conv2d(incpt, w_43, strides=[1, 1, 1, 1], padding='SAME')
         beta_43 = tf.get_variable(shape=[32],name='InceptionV1/Mixed_4f/Branch_2/Conv2d_0a_1x1/BatchNorm/beta')
         moving_mean_43 = tf.get_variable(shape=[32],name='InceptionV1/Mixed_4f/Branch_2/Conv2d_0a_1x1/BatchNorm/moving_mean')
         moving_variance_43 = tf.get_variable(shape=[32],name='InceptionV1/Mixed_4f/Branch_2/Conv2d_0a_1x1/BatchNorm/moving_variance')
@@ -528,8 +485,7 @@ class CNN_Triplet_Metric(object):
                                               mean=moving_mean_43, \
                                               variance=moving_variance_43,scale=None,variance_epsilon=0.001)
         w_44 = tf.get_variable(shape=[3,3,32,128], name='InceptionV1/Mixed_4f/Branch_2/Conv2d_0b_3x3/weights')
-        b_44 = tf.get_variable(shape=[128],name='InceptionV1/Mixed_4f/Branch_2/Conv2d_0b_3x3/bias')
-        branch7_2 = tf.nn.conv2d(branch7_2, w_44, strides=[1, 1, 1, 1], padding='SAME') + b_44
+        branch7_2 = tf.nn.conv2d(branch7_2, w_44, strides=[1, 1, 1, 1], padding='SAME')
         beta_44 = tf.get_variable(shape=[128],name='InceptionV1/Mixed_4f/Branch_2/Conv2d_0b_3x3/BatchNorm/beta')
         moving_mean_44 = tf.get_variable(shape=[128],name='InceptionV1/Mixed_4f/Branch_2/Conv2d_0b_3x3/BatchNorm/moving_mean')
         moving_variance_44 = tf.get_variable(shape=[128],name='InceptionV1/Mixed_4f/Branch_2/Conv2d_0b_3x3/BatchNorm/moving_variance')
@@ -540,8 +496,7 @@ class CNN_Triplet_Metric(object):
         branch7_3 = tf.nn.max_pool(incpt, ksize=[1, 3, 3, 1], \
                                  strides=[1, 1, 1, 1], padding='SAME')
         w_45 = tf.get_variable(shape=[1,1,528,128], name='InceptionV1/Mixed_4f/Branch_3/Conv2d_0b_1x1/weights')
-        b_45 = tf.get_variable(shape=[128],name='InceptionV1/Mixed_4f/Branch_3/Conv2d_0b_1x1/bias')
-        branch7_3 = tf.nn.conv2d(branch7_3, w_45, strides=[1, 1, 1, 1], padding='SAME') + b_45
+        branch7_3 = tf.nn.conv2d(branch7_3, w_45, strides=[1, 1, 1, 1], padding='SAME')
         beta_45 = tf.get_variable(shape=[128],name='InceptionV1/Mixed_4f/Branch_3/Conv2d_0b_1x1/BatchNorm/beta')
         moving_mean_45 = tf.get_variable(shape=[128],name='InceptionV1/Mixed_4f/Branch_3/Conv2d_0b_1x1/BatchNorm/moving_mean')
         moving_variance_45 = tf.get_variable(shape=[128],name='InceptionV1/Mixed_4f/Branch_3/Conv2d_0b_1x1/BatchNorm/moving_variance')
@@ -555,8 +510,7 @@ class CNN_Triplet_Metric(object):
         #eighth inception
         #branch 0
         w_46 = tf.get_variable(shape=[1,1,832,256], name='InceptionV1/Mixed_5b/Branch_0/Conv2d_0a_1x1/weights')
-        b_46 = tf.get_variable(shape=[256],name='InceptionV1/Mixed_5b/Branch_0/Conv2d_0a_1x1/bias')
-        branch8_0 = tf.nn.conv2d(incpt, w_46, strides=[1, 1, 1, 1], padding='SAME') + b_46
+        branch8_0 = tf.nn.conv2d(incpt, w_46, strides=[1, 1, 1, 1], padding='SAME')
         beta_46 = tf.get_variable(shape=[256],name='InceptionV1/Mixed_5b/Branch_0/Conv2d_0a_1x1/BatchNorm/beta')
         moving_mean_46 = tf.get_variable(shape=[256],name='InceptionV1/Mixed_5b/Branch_0/Conv2d_0a_1x1/BatchNorm/moving_mean')
         moving_variance_46 = tf.get_variable(shape=[256],name='InceptionV1/Mixed_5b/Branch_0/Conv2d_0a_1x1/BatchNorm/moving_variance')
@@ -565,8 +519,7 @@ class CNN_Triplet_Metric(object):
                                               variance=moving_variance_46,scale=None,variance_epsilon=0.001)
         #branch 1
         w_47 = tf.get_variable(shape=[1,1,832,160], name='InceptionV1/Mixed_5b/Branch_1/Conv2d_0a_1x1/weights')
-        b_47 = tf.get_variable(shape=[160],name='InceptionV1/Mixed_5b/Branch_1/Conv2d_0a_1x1/bias')
-        branch8_1 = tf.nn.conv2d(incpt, w_47, strides=[1, 1, 1, 1], padding='SAME') + b_47
+        branch8_1 = tf.nn.conv2d(incpt, w_47, strides=[1, 1, 1, 1], padding='SAME')
         beta_47 = tf.get_variable(shape=[160],name='InceptionV1/Mixed_5b/Branch_1/Conv2d_0a_1x1/BatchNorm/beta')
         moving_mean_47 = tf.get_variable(shape=[160],name='InceptionV1/Mixed_5b/Branch_1/Conv2d_0a_1x1/BatchNorm/moving_mean')
         moving_variance_47 = tf.get_variable(shape=[160],name='InceptionV1/Mixed_5b/Branch_1/Conv2d_0a_1x1/BatchNorm/moving_variance')
@@ -574,8 +527,7 @@ class CNN_Triplet_Metric(object):
                                               mean=moving_mean_47, \
                                               variance=moving_variance_47,scale=None,variance_epsilon=0.001)
         w_48 = tf.get_variable(shape=[3,3,160,320], name='InceptionV1/Mixed_5b/Branch_1/Conv2d_0b_3x3/weights')
-        b_48 = tf.get_variable(shape=[320],name='InceptionV1/Mixed_5b/Branch_1/Conv2d_0b_3x3/bias')
-        branch8_1 = tf.nn.conv2d(branch8_1, w_48, strides=[1, 1, 1, 1], padding='SAME') + b_48
+        branch8_1 = tf.nn.conv2d(branch8_1, w_48, strides=[1, 1, 1, 1], padding='SAME')
         beta_48 = tf.get_variable(shape=[320],name='InceptionV1/Mixed_5b/Branch_1/Conv2d_0b_3x3/BatchNorm/beta')
         moving_mean_48 = tf.get_variable(shape=[320],name='InceptionV1/Mixed_5b/Branch_1/Conv2d_0b_3x3/BatchNorm/moving_mean')
         moving_variance_48 = tf.get_variable(shape=[320],name='InceptionV1/Mixed_5b/Branch_1/Conv2d_0b_3x3/BatchNorm/moving_variance')
@@ -584,8 +536,7 @@ class CNN_Triplet_Metric(object):
                                               variance=moving_variance_48,scale=None,variance_epsilon=0.001)
         #branch 2
         w_49 = tf.get_variable(shape=[1,1,832,32], name='InceptionV1/Mixed_5b/Branch_2/Conv2d_0a_1x1/weights')
-        b_49 = tf.get_variable(shape=[32],name='InceptionV1/Mixed_5b/Branch_2/Conv2d_0a_1x1/bias')
-        branch8_2 = tf.nn.conv2d(incpt, w_49, strides=[1, 1, 1, 1], padding='SAME') + b_49
+        branch8_2 = tf.nn.conv2d(incpt, w_49, strides=[1, 1, 1, 1], padding='SAME')
         beta_49 = tf.get_variable(shape=[32],name='InceptionV1/Mixed_5b/Branch_2/Conv2d_0a_1x1/BatchNorm/beta')
         moving_mean_49 = tf.get_variable(shape=[32],name='InceptionV1/Mixed_5b/Branch_2/Conv2d_0a_1x1/BatchNorm/moving_mean')
         moving_variance_49 = tf.get_variable(shape=[32],name='InceptionV1/Mixed_5b/Branch_2/Conv2d_0a_1x1/BatchNorm/moving_variance')
@@ -593,8 +544,7 @@ class CNN_Triplet_Metric(object):
                                               mean=moving_mean_49, \
                                               variance=moving_variance_49,scale=None,variance_epsilon=0.001)
         w_50 = tf.get_variable(shape=[3,3,32,128], name='InceptionV1/Mixed_5b/Branch_2/Conv2d_0a_3x3/weights')
-        b_50 = tf.get_variable(shape=[128],name='InceptionV1/Mixed_5b/Branch_2/Conv2d_0a_3x3/bias')
-        branch8_2 = tf.nn.conv2d(branch8_2, w_50, strides=[1, 1, 1, 1], padding='SAME') + b_50
+        branch8_2 = tf.nn.conv2d(branch8_2, w_50, strides=[1, 1, 1, 1], padding='SAME')
         beta_50 = tf.get_variable(shape=[128],name='InceptionV1/Mixed_5b/Branch_2/Conv2d_0a_3x3/BatchNorm/beta')
         moving_mean_50 = tf.get_variable(shape=[128],name='InceptionV1/Mixed_5b/Branch_2/Conv2d_0a_3x3/BatchNorm/moving_mean')
         moving_variance_50 = tf.get_variable(shape=[128],name='InceptionV1/Mixed_5b/Branch_2/Conv2d_0a_3x3/BatchNorm/moving_variance')
@@ -605,8 +555,7 @@ class CNN_Triplet_Metric(object):
         branch8_3 = tf.nn.max_pool(incpt, ksize=[1, 3, 3, 1], \
                                  strides=[1, 1, 1, 1], padding='SAME')
         w_51 = tf.get_variable(shape=[1,1,832,128], name='InceptionV1/Mixed_5b/Branch_3/Conv2d_0b_1x1/weights')
-        b_51 = tf.get_variable(shape=[128],name='InceptionV1/Mixed_5b/Branch_3/Conv2d_0b_1x1/bias')
-        branch8_3 = tf.nn.conv2d(branch8_3, w_51, strides=[1, 1, 1, 1], padding='SAME') + b_51
+        branch8_3 = tf.nn.conv2d(branch8_3, w_51, strides=[1, 1, 1, 1], padding='SAME')
         beta_51 = tf.get_variable(shape=[128],name='InceptionV1/Mixed_5b/Branch_3/Conv2d_0b_1x1/BatchNorm/beta')
         moving_mean_51 = tf.get_variable(shape=[128],name='InceptionV1/Mixed_5b/Branch_3/Conv2d_0b_1x1/BatchNorm/moving_mean')
         moving_variance_51 = tf.get_variable(shape=[128],name='InceptionV1/Mixed_5b/Branch_3/Conv2d_0b_1x1/BatchNorm/moving_variance')
@@ -618,8 +567,7 @@ class CNN_Triplet_Metric(object):
         #ninth inception
         #branch 0
         w_52 = tf.get_variable(shape=[1,1,832,384], name='InceptionV1/Mixed_5c/Branch_0/Conv2d_0a_1x1/weights')
-        b_52 = tf.get_variable(shape=[384],name='InceptionV1/Mixed_5c/Branch_0/Conv2d_0a_1x1/bias')
-        branch9_0 = tf.nn.conv2d(incpt, w_52, strides=[1, 1, 1, 1], padding='SAME') + b_52
+        branch9_0 = tf.nn.conv2d(incpt, w_52, strides=[1, 1, 1, 1], padding='SAME')
         beta_52 = tf.get_variable(shape=[384],name='InceptionV1/Mixed_5c/Branch_0/Conv2d_0a_1x1/BatchNorm/beta')
         moving_mean_52 = tf.get_variable(shape=[384],name='InceptionV1/Mixed_5c/Branch_0/Conv2d_0a_1x1/BatchNorm/moving_mean')
         moving_variance_52 = tf.get_variable(shape=[384],name='InceptionV1/Mixed_5c/Branch_0/Conv2d_0a_1x1/BatchNorm/moving_variance')
@@ -628,8 +576,7 @@ class CNN_Triplet_Metric(object):
                                               variance=moving_variance_52,scale=None,variance_epsilon=0.001)
         #branch 1
         w_53 = tf.get_variable(shape=[1,1,832,192], name='InceptionV1/Mixed_5c/Branch_1/Conv2d_0a_1x1/weights')
-        b_53 = tf.get_variable(shape=[192],name='InceptionV1/Mixed_5c/Branch_1/Conv2d_0a_1x1/bias')
-        branch9_1 = tf.nn.conv2d(incpt, w_53, strides=[1, 1, 1, 1], padding='SAME') + b_53
+        branch9_1 = tf.nn.conv2d(incpt, w_53, strides=[1, 1, 1, 1], padding='SAME')
         beta_53 = tf.get_variable(shape=[192],name='InceptionV1/Mixed_5c/Branch_1/Conv2d_0a_1x1/BatchNorm/beta')
         moving_mean_53 = tf.get_variable(shape=[192],name='InceptionV1/Mixed_5c/Branch_1/Conv2d_0a_1x1/BatchNorm/moving_mean')
         moving_variance_53 = tf.get_variable(shape=[192],name='InceptionV1/Mixed_5c/Branch_1/Conv2d_0a_1x1/BatchNorm/moving_variance')
@@ -637,8 +584,7 @@ class CNN_Triplet_Metric(object):
                                               mean=moving_mean_53, \
                                               variance=moving_variance_53,scale=None,variance_epsilon=0.001)
         w_54 = tf.get_variable(shape=[3,3,192,384], name='InceptionV1/Mixed_5c/Branch_1/Conv2d_0b_3x3/weights')
-        b_54 = tf.get_variable(shape=[384],name='InceptionV1/Mixed_5c/Branch_1/Conv2d_0b_3x3/bias')
-        branch9_1 = tf.nn.conv2d(branch9_1, w_54, strides=[1, 1, 1, 1], padding='SAME') + b_54
+        branch9_1 = tf.nn.conv2d(branch9_1, w_54, strides=[1, 1, 1, 1], padding='SAME')
         beta_54 = tf.get_variable(shape=[384],name='InceptionV1/Mixed_5c/Branch_1/Conv2d_0b_3x3/BatchNorm/beta')
         moving_mean_54 = tf.get_variable(shape=[384],name='InceptionV1/Mixed_5c/Branch_1/Conv2d_0b_3x3/BatchNorm/moving_mean')
         moving_variance_54 = tf.get_variable(shape=[384],name='InceptionV1/Mixed_5c/Branch_1/Conv2d_0b_3x3/BatchNorm/moving_variance')
@@ -647,8 +593,7 @@ class CNN_Triplet_Metric(object):
                                               variance=moving_variance_54,scale=None,variance_epsilon=0.001)
         #branch 2
         w_55 = tf.get_variable(shape=[1,1,832,48], name='InceptionV1/Mixed_5c/Branch_2/Conv2d_0a_1x1/weights')
-        b_55 = tf.get_variable(shape=[48],name='InceptionV1/Mixed_5c/Branch_2/Conv2d_0a_1x1/bias')
-        branch9_2 = tf.nn.conv2d(incpt, w_55, strides=[1, 1, 1, 1], padding='SAME') + b_55
+        branch9_2 = tf.nn.conv2d(incpt, w_55, strides=[1, 1, 1, 1], padding='SAME')
         beta_55 = tf.get_variable(shape=[48],name='InceptionV1/Mixed_5c/Branch_2/Conv2d_0a_1x1/BatchNorm/beta')
         moving_mean_55 = tf.get_variable(shape=[48],name='InceptionV1/Mixed_5c/Branch_2/Conv2d_0a_1x1/BatchNorm/moving_mean')
         moving_variance_55 = tf.get_variable(shape=[48],name='InceptionV1/Mixed_5c/Branch_2/Conv2d_0a_1x1/BatchNorm/moving_variance')
@@ -656,8 +601,7 @@ class CNN_Triplet_Metric(object):
                                               mean=moving_mean_55, \
                                               variance=moving_variance_55,scale=None,variance_epsilon=0.001)
         w_56 = tf.get_variable(shape=[3,3,48,128], name='InceptionV1/Mixed_5c/Branch_2/Conv2d_0b_3x3/weights')
-        b_56 = tf.get_variable(shape=[128],name='InceptionV1/Mixed_5c/Branch_2/Conv2d_0b_3x3/bias')
-        branch9_2 = tf.nn.conv2d(branch9_2, w_56, strides=[1, 1, 1, 1], padding='SAME') + b_56
+        branch9_2 = tf.nn.conv2d(branch9_2, w_56, strides=[1, 1, 1, 1], padding='SAME')
         beta_56 = tf.get_variable(shape=[128],name='InceptionV1/Mixed_5c/Branch_2/Conv2d_0b_3x3/BatchNorm/beta')
         moving_mean_56 = tf.get_variable(shape=[128],name='InceptionV1/Mixed_5c/Branch_2/Conv2d_0b_3x3/BatchNorm/moving_mean')
         moving_variance_56 = tf.get_variable(shape=[128],name='InceptionV1/Mixed_5c/Branch_2/Conv2d_0b_3x3/BatchNorm/moving_variance')
@@ -668,8 +612,7 @@ class CNN_Triplet_Metric(object):
         branch9_3 = tf.nn.max_pool(incpt, ksize=[1, 3, 3, 1], \
                                  strides=[1, 1, 1, 1], padding='SAME')
         w_57 = tf.get_variable(shape=[1,1,832,128], name='InceptionV1/Mixed_5c/Branch_3/Conv2d_0b_1x1/weights')
-        b_57 = tf.get_variable(shape=[128],name='InceptionV1/Mixed_5c/Branch_3/Conv2d_0b_1x1/bias')
-        branch9_3 = tf.nn.conv2d(branch9_3, w_57, strides=[1, 1, 1, 1], padding='SAME') + b_57
+        branch9_3 = tf.nn.conv2d(branch9_3, w_57, strides=[1, 1, 1, 1], padding='SAME')
         beta_57 = tf.get_variable(shape=[128],name='InceptionV1/Mixed_5c/Branch_3/Conv2d_0b_1x1/BatchNorm/beta')
         moving_mean_57 = tf.get_variable(shape=[128],name='InceptionV1/Mixed_5c/Branch_3/Conv2d_0b_1x1/BatchNorm/moving_mean')
         moving_variance_57 = tf.get_variable(shape=[128],name='InceptionV1/Mixed_5c/Branch_3/Conv2d_0b_1x1/BatchNorm/moving_variance')
@@ -740,13 +683,7 @@ class CNN_Triplet_Metric(object):
                                     moving_variance_55,
                                     moving_variance_56, moving_variance_57])
 
-            init_rem_vars_op = tf.variables_initializer([b_1, b_2, b_3, b_4, b_5, b_6, b_7, b_8, b_9, b_10,
-                                                     b_11, b_12, b_13, b_14, b_15, b_16, b_17, b_18, b_19, b_20,
-                                                     b_21, b_22, b_23, b_24, b_25, b_26, b_27, b_28, b_29, b_30,
-                                                     b_31, b_32, b_33, b_34, b_35, b_36, b_37, b_38, b_39, b_40,
-                                                     b_41, b_42, b_43, b_44, b_45, b_46, b_47, b_48, b_49, b_50,
-                                                     b_51, b_52, b_53, b_54, b_55, b_56, b_57, b_58,
-                                                     w_58])
+            init_rem_vars_op = tf.variables_initializer([b_58, w_58])
             self.sess.run(init_rem_vars_op)
             saver.restore(self.sess, "./inception_v1.ckpt")
         return nets
