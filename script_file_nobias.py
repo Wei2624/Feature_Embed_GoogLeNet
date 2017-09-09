@@ -14,52 +14,90 @@ class CNN_Triplet_Metric(object):
         img_n = tf.placeholder(tf.float32, [None, 224, 224, 3])
         self.sess = sess
 
+
+
         image_mean = scipy.io.loadmat('image_mean.mat')
         image_mean = image_mean['image_mean']
+        image_mean = np.expand_dims(image_mean,axis=0)
+
 
         # reading matlab v7.3 file using h5py. it has struct with img as a member
-        # with h5py.File("training_images_crop15_square256.mat") as f:
-        #     img_data = [f[element[0]][:] for element in f['training_images/img']]
-        #     class_id = [f[element[0]][:] for element in f['training_images/class_id']]
-        #
+        with h5py.File("training_images_crop15_square256.mat") as f:
+            img_data = [f[element[0]][:] for element in f['training_images/img']]
+            class_id = [f[element[0]][:] for element in f['training_images/class_id']]
+
         # img_data = np.float32(np.asarray(img_data))
-        # class_id = np.asarray(class_id)
-        # img_data = np.transpose(img_data, (0, 2, 3, 1))
-        # class_label = class_id[:, 0, 0]
-        #
+        img_data = np.asarray(img_data)
+        class_id = np.asarray(class_id)
+        img_data = np.transpose(img_data, (0, 2, 3, 1))
+        class_label = class_id[:, 0, 0]
+
         # for i in range(len(class_label)-1):
         #     img_data[i,:,:,:] -= np.float32(image_mean)
-        #
-        # index_a, index_p, index_n = self.generate_triplet(class_label, 40)
 
-        asaved = np.genfromtxt('asaved.csv', delimiter=' ')
-        psaved = np.genfromtxt('psaved.csv', delimiter=' ')
-        nsaved = np.genfromtxt('nsaved.csv', delimiter=' ')
-        asaved = np.reshape(asaved, (224, 224, 3))
-        psaved = np.reshape(psaved, (224, 224, 3))
-        nsaved = np.reshape(nsaved, (224, 224, 3))
-        asaved = np.expand_dims(asaved, axis=0)
-        psaved = np.expand_dims(psaved, axis=0)
-        nsaved = np.expand_dims(nsaved, axis=0)
-        img_data = np.concatenate((asaved,psaved,nsaved),axis=0)
+        index_a, index_p, index_n = self.generate_triplet(class_label, 40)
+
+        # asaved = np.genfromtxt('asaved.csv', delimiter=' ')
+        # psaved = np.genfromtxt('psaved.csv', delimiter=' ')
+        # nsaved = np.genfromtxt('nsaved.csv', delimiter=' ')
+        # asaved = np.reshape(asaved, (224, 224, 3))
+        # psaved = np.reshape(psaved, (224, 224, 3))
+        # nsaved = np.reshape(nsaved, (224, 224, 3))
+        # asaved = np.expand_dims(asaved, axis=0)
+        # psaved = np.expand_dims(psaved, axis=0)
+        # nsaved = np.expand_dims(nsaved, axis=0)
+        # img_data = np.concatenate((asaved,psaved,nsaved),axis=0)
 
         with tf.variable_scope("") as scope:
-            a_output,tt = self.CNN_Metric_Model(img_a)
+            a_output,tt1 = self.CNN_Metric_Model(img_a)
             scope.reuse_variables()
-            p_output,test = self.CNN_Metric_Model(img_p)
+            p_output,tt2 = self.CNN_Metric_Model(img_p)
             scope.reuse_variables()
-            n_output, test= self.CNN_Metric_Model(img_n)
-        loss,_,_ ,_= self.triplet_loss([1.0,1.0,1.0],a_output,p_output,n_output)
-        train_op = tf.train.AdamOptimizer(0.05).minimize(loss)
+            n_output, tt3= self.CNN_Metric_Model(img_n)
+
+        a_output = tf.nn.l2_normalize(a_output,dim=1)
+        p_output = tf.nn.l2_normalize(p_output,dim=1)
+        n_output = tf.nn.l2_normalize(n_output,dim=1)
+
+        loss,t1,t2,t3= self.triplet_loss([0.5,0.5,0.5],a_output,p_output,n_output)
+        train_op = tf.train.AdamOptimizer(0.0001).minimize(loss)
         self.sess.run(tf.global_variables_initializer())
         saver = tf.train.Saver(var_list=self.var_dict)
         saver.restore(self.sess,"./inception_v1.ckpt")
-        print self.sess.run(tf.get_default_graph().get_tensor_by_name("InceptionV1/Conv2d_1a_7x7/weights:0"))
-        opt = self.sess.run([loss,train_op,tt], feed_dict={img_a: asaved,
-                             img_p: psaved,
-                             img_n: nsaved})
-        print("Epoch:", '%04d' % (0 + 1), "cost=", "{:.9f}".format(opt[0]))
-        print opt[2]
+
+
+        merged = tf.summary.merge_all()
+        train_writer = tf.summary.FileWriter('./train', self.sess.graph)
+        # for epoch in range(3):
+        #     print self.sess.run(tf.get_default_graph().get_tensor_by_name("InceptionV1/Conv2d_1a_7x7/weights:0"))
+        #     opt = self.sess.run([loss,train_op,tt1,tt2,tt3], feed_dict={img_a: asaved,
+        #                                            img_p: psaved,
+        #                                            img_n: nsaved})
+        #     print("Epoch:", '%04d' % (epoch + 1), "cost=", "{:.9f}".format(opt[0]))
+        #     print opt[2]
+        # index_a, index_p, index_n = self.generate_triplet(class_label, 40)
+        # opt = self.sess.run([loss,train_op], feed_dict={img_a: img_data[index_a, :, :, :],
+        #                                                  img_p: img_data[index_p, :, :, :],
+        #                                                  img_n: img_data[index_n, :, :, :]})
+        #
+        # print("Epoch:", '%04d' % (0 + 1), "cost=", "{:.9f}".format(opt[0]))
+
+        for epoch in range(2000):
+            # print self.sess.run(tf.get_default_graph().get_tensor_by_name("InceptionV1/Conv2d_1a_7x7/weights:0"))
+            index_a, index_p, index_n = self.generate_triplet(class_label, 40)
+            data_a,data_p,data_n = img_data[index_a,:,:,:],img_data[index_p,:,:,:],img_data[index_n,:,:,:]
+            imean = np.tile(image_mean, (40, 1, 1, 1))
+            data_a = np.float32(data_a) - np.float32(imean)
+            data_p = np.float32(data_p) - np.float32(imean)
+            data_n = np.float32(data_n) - np.float32(imean)
+
+
+            cost,_,m = self.sess.run([loss,train_op,merged], feed_dict={img_a: data_a,
+                                                             img_p: data_p,
+                                                             img_n: data_n})
+            print m
+            train_writer.add_summary(m,epoch)
+            print("Epoch:", '%04d' % (epoch + 1), "cost=", "{:.9f}".format(cost))
 
             # for epoch in range(19998):
             #     index_a, index_p, index_n = self.generate_triplet(class_label, 40)
@@ -80,32 +118,32 @@ class CNN_Triplet_Metric(object):
 
 
 
-            # with h5py.File("validation_images_crop15_square256.mat") as f:
-            #     img_data = [f[element[0]][:] for element in f['validation_images/img']]
-            #     class_id = [f[element[0]][:] for element in f['validation_images/class_id']]
-            #
-            # img_data = np.float32(np.asarray(img_data))
-            # class_id = np.asarray(class_id)
-            # img_data = np.transpose(img_data, (0, 2, 3, 1))
-            # class_label = class_id[:, 0, 0]
-            #
-            # for i in range(len(class_label) - 1):
-            #     img_data[i, :, :, :] -= np.float32(image_mean)
-            #
-            # results = np.zeros((1, 64))
-            #
-            # ptr = 0
-            # no_of_batches_test = int(img_data.shape[0] / 100)
-            # for k in range(no_of_batches_test):
-            #     inp = img_data[ptr:ptr + 100,:,:,:]
-            #     ptr += 100
-            #     scope.reuse_variables()
-            #     val_output = self.CNN_Metric_Model(img_a, False)
-            #     embeded_feat = self.sess.run([val_output], feed_dict={img_a: inp})
-            #     results = np.concatenate((results,embeded_feat[0]), axis=0)
-            #
-            # results = np.delete(results, 0, axis=0)
-            # np.savetxt("results.csv", results, delimiter=",")
+        with h5py.File("validation_images_crop15_square256.mat") as f:
+            img_data = [f[element[0]][:] for element in f['validation_images/img']]
+            class_id = [f[element[0]][:] for element in f['validation_images/class_id']]
+
+        img_data = np.asarray(img_data)
+        class_id = np.asarray(class_id)
+        img_data = np.transpose(img_data, (0, 2, 3, 1))
+        class_label = class_id[:, 0, 0]
+
+        for i in range(len(class_label) - 1):
+            img_data[i, :, :, :] -= np.float32(image_mean)
+
+        results = np.zeros((1, 64))
+
+        ptr = 0
+        no_of_batches_test = int(img_data.shape[0] / 100)
+        for k in range(no_of_batches_test):
+            inp = img_data[ptr:ptr + 100,:,:,:]
+            imean = np.tile(image_mean, (100, 1, 1, 1))
+            inp = np.float32(inp) - np.float32(imean)
+            ptr += 100
+            embeded_feat = self.sess.run([a_output], feed_dict={img_a: inp})
+            results = np.concatenate((results,embeded_feat[0]), axis=0)
+
+        results = np.delete(results, 0, axis=0)
+        np.savetxt("results.csv", results, delimiter=",")
             # print results.shape
 
     def Variables_Dict(self):
@@ -244,7 +282,7 @@ class CNN_Triplet_Metric(object):
             'InceptionV1/Mixed_5c/Branch_2/Conv2d_0b_3x3/BatchNorm/beta': tf.get_variable(shape=[128],name='InceptionV1/Mixed_5c/Branch_2/Conv2d_0b_3x3/BatchNorm/beta'),
             'InceptionV1/Mixed_5c/Branch_3/Conv2d_0b_1x1/BatchNorm/beta': tf.get_variable(shape=[128],name='InceptionV1/Mixed_5c/Branch_3/Conv2d_0b_1x1/BatchNorm/beta'),
             #moving means
-            'InceptionV1/Conv2d_1a_7x7/BatchNorm/moving_mean': tf.get_variable(shape=[64], name='InceptionV1/Conv2d_1a_7x7/BatchNorm/moving_mean'),
+            'InceptionV1/Conv2d_1a_7x7/BatchNorm/moving_mean': tf.get_variable(shape=[64], name='InceptionV1/Conv2d_1a_7x7/BatchNorm/moving_mean',trainable=False),
             'InceptionV1/Conv2d_2b_1x1/BatchNorm/moving_mean': tf.get_variable(shape=[64], name='InceptionV1/Conv2d_2b_1x1/BatchNorm/moving_mean'),
             'InceptionV1/Conv2d_2c_3x3/BatchNorm/moving_mean': tf.get_variable(shape=[192], name='InceptionV1/Conv2d_2c_3x3/BatchNorm/moving_mean'),
             # first inception
@@ -377,6 +415,380 @@ class CNN_Triplet_Metric(object):
             'InceptionV1/Mixed_5c/Branch_2/Conv2d_0a_1x1/BatchNorm/moving_variance': tf.get_variable(shape=[48], name='InceptionV1/Mixed_5c/Branch_2/Conv2d_0a_1x1/BatchNorm/moving_variance'),
             'InceptionV1/Mixed_5c/Branch_2/Conv2d_0b_3x3/BatchNorm/moving_variance': tf.get_variable(shape=[128], name='InceptionV1/Mixed_5c/Branch_2/Conv2d_0b_3x3/BatchNorm/moving_variance'),
             'InceptionV1/Mixed_5c/Branch_3/Conv2d_0b_1x1/BatchNorm/moving_variance': tf.get_variable(shape=[128],  name='InceptionV1/Mixed_5c/Branch_3/Conv2d_0b_1x1/BatchNorm/moving_variance')
+            # # beta
+            # 'InceptionV1/Conv2d_1a_7x7/BatchNorm/beta': tf.get_variable(shape=[64],
+            #                                                             name='InceptionV1/Conv2d_1a_7x7/BatchNorm/beta',trainable=False),
+            # 'InceptionV1/Conv2d_2b_1x1/BatchNorm/beta': tf.get_variable(shape=[64],
+            #                                                             name='InceptionV1/Conv2d_2b_1x1/BatchNorm/beta',trainable=False),
+            # 'InceptionV1/Conv2d_2c_3x3/BatchNorm/beta': tf.get_variable(shape=[192],
+            #                                                             name='InceptionV1/Conv2d_2c_3x3/BatchNorm/beta',trainable=False),
+            # # first inception
+            # 'InceptionV1/Mixed_3b/Branch_0/Conv2d_0a_1x1/BatchNorm/beta': tf.get_variable(shape=[64],
+            #                                                                               name='InceptionV1/Mixed_3b/Branch_0/Conv2d_0a_1x1/BatchNorm/beta',trainable=False),
+            # 'InceptionV1/Mixed_3b/Branch_1/Conv2d_0a_1x1/BatchNorm/beta': tf.get_variable(shape=[96],
+            #                                                                               name='InceptionV1/Mixed_3b/Branch_1/Conv2d_0a_1x1/BatchNorm/beta',trainable=False),
+            # 'InceptionV1/Mixed_3b/Branch_1/Conv2d_0b_3x3/BatchNorm/beta': tf.get_variable(shape=[128],
+            #                                                                               name='InceptionV1/Mixed_3b/Branch_1/Conv2d_0b_3x3/BatchNorm/beta',trainable=False),
+            # 'InceptionV1/Mixed_3b/Branch_2/Conv2d_0a_1x1/BatchNorm/beta': tf.get_variable(shape=[16],
+            #                                                                               name='InceptionV1/Mixed_3b/Branch_2/Conv2d_0a_1x1/BatchNorm/beta',trainable=False),
+            # 'InceptionV1/Mixed_3b/Branch_2/Conv2d_0b_3x3/BatchNorm/beta': tf.get_variable(shape=[32],
+            #                                                                               name='InceptionV1/Mixed_3b/Branch_2/Conv2d_0b_3x3/BatchNorm/beta',trainable=False),
+            # 'InceptionV1/Mixed_3b/Branch_3/Conv2d_0b_1x1/BatchNorm/beta': tf.get_variable(shape=[32],
+            #                                                                               name='InceptionV1/Mixed_3b/Branch_3/Conv2d_0b_1x1/BatchNorm/beta',trainable=False),
+            # # second inception
+            # 'InceptionV1/Mixed_3c/Branch_0/Conv2d_0a_1x1/BatchNorm/beta': tf.get_variable(shape=[128],
+            #                                                                               name='InceptionV1/Mixed_3c/Branch_0/Conv2d_0a_1x1/BatchNorm/beta',trainable=False),
+            # 'InceptionV1/Mixed_3c/Branch_1/Conv2d_0a_1x1/BatchNorm/beta': tf.get_variable(shape=[128],
+            #                                                                               name='InceptionV1/Mixed_3c/Branch_1/Conv2d_0a_1x1/BatchNorm/beta',trainable=False),
+            # 'InceptionV1/Mixed_3c/Branch_1/Conv2d_0b_3x3/BatchNorm/beta': tf.get_variable(shape=[192],
+            #                                                                               name='InceptionV1/Mixed_3c/Branch_1/Conv2d_0b_3x3/BatchNorm/beta',trainable=False),
+            # 'InceptionV1/Mixed_3c/Branch_2/Conv2d_0a_1x1/BatchNorm/beta': tf.get_variable(shape=[32],
+            #                                                                               name='InceptionV1/Mixed_3c/Branch_2/Conv2d_0a_1x1/BatchNorm/beta',trainable=False),
+            # 'InceptionV1/Mixed_3c/Branch_2/Conv2d_0b_3x3/BatchNorm/beta': tf.get_variable(shape=[96],
+            #                                                                               name='InceptionV1/Mixed_3c/Branch_2/Conv2d_0b_3x3/BatchNorm/beta',trainable=False),
+            # 'InceptionV1/Mixed_3c/Branch_3/Conv2d_0b_1x1/BatchNorm/beta': tf.get_variable(shape=[64],
+            #                                                                               name='InceptionV1/Mixed_3c/Branch_3/Conv2d_0b_1x1/BatchNorm/beta',trainable=False),
+            # # third inception
+            # 'InceptionV1/Mixed_4b/Branch_0/Conv2d_0a_1x1/BatchNorm/beta': tf.get_variable(shape=[192],
+            #                                                                               name='InceptionV1/Mixed_4b/Branch_0/Conv2d_0a_1x1/BatchNorm/beta',trainable=False),
+            # 'InceptionV1/Mixed_4b/Branch_1/Conv2d_0a_1x1/BatchNorm/beta': tf.get_variable(shape=[96],
+            #                                                                               name='InceptionV1/Mixed_4b/Branch_1/Conv2d_0a_1x1/BatchNorm/beta',trainable=False),
+            # 'InceptionV1/Mixed_4b/Branch_1/Conv2d_0b_3x3/BatchNorm/beta': tf.get_variable(shape=[208],
+            #                                                                               name='InceptionV1/Mixed_4b/Branch_1/Conv2d_0b_3x3/BatchNorm/beta',trainable=False),
+            # 'InceptionV1/Mixed_4b/Branch_2/Conv2d_0a_1x1/BatchNorm/beta': tf.get_variable(shape=[16],
+            #                                                                               name='InceptionV1/Mixed_4b/Branch_2/Conv2d_0a_1x1/BatchNorm/beta',trainable=False),
+            # 'InceptionV1/Mixed_4b/Branch_2/Conv2d_0b_3x3/BatchNorm/beta': tf.get_variable(shape=[48],
+            #                                                                               name='InceptionV1/Mixed_4b/Branch_2/Conv2d_0b_3x3/BatchNorm/beta',trainable=False),
+            # 'InceptionV1/Mixed_4b/Branch_3/Conv2d_0b_1x1/BatchNorm/beta': tf.get_variable(shape=[64],
+            #                                                                               name='InceptionV1/Mixed_4b/Branch_3/Conv2d_0b_1x1/BatchNorm/beta',trainable=False),
+            # # fourth inception
+            # 'InceptionV1/Mixed_4c/Branch_0/Conv2d_0a_1x1/BatchNorm/beta': tf.get_variable(shape=[160],
+            #                                                                               name='InceptionV1/Mixed_4c/Branch_0/Conv2d_0a_1x1/BatchNorm/beta',trainable=False),
+            # 'InceptionV1/Mixed_4c/Branch_1/Conv2d_0a_1x1/BatchNorm/beta': tf.get_variable(shape=[112],
+            #                                                                               name='InceptionV1/Mixed_4c/Branch_1/Conv2d_0a_1x1/BatchNorm/beta',trainable=False),
+            # 'InceptionV1/Mixed_4c/Branch_1/Conv2d_0b_3x3/BatchNorm/beta': tf.get_variable(shape=[224],
+            #                                                                               name='InceptionV1/Mixed_4c/Branch_1/Conv2d_0b_3x3/BatchNorm/beta',trainable=False),
+            # 'InceptionV1/Mixed_4c/Branch_2/Conv2d_0a_1x1/BatchNorm/beta': tf.get_variable(shape=[24],
+            #                                                                               name='InceptionV1/Mixed_4c/Branch_2/Conv2d_0a_1x1/BatchNorm/beta',trainable=False),
+            # 'InceptionV1/Mixed_4c/Branch_2/Conv2d_0b_3x3/BatchNorm/beta': tf.get_variable(shape=[64],
+            #                                                                               name='InceptionV1/Mixed_4c/Branch_2/Conv2d_0b_3x3/BatchNorm/beta',trainable=False),
+            # 'InceptionV1/Mixed_4c/Branch_3/Conv2d_0b_1x1/BatchNorm/beta': tf.get_variable(shape=[64],
+            #                                                                               name='InceptionV1/Mixed_4c/Branch_3/Conv2d_0b_1x1/BatchNorm/beta',trainable=False),
+            # # fifth inception
+            # 'InceptionV1/Mixed_4d/Branch_0/Conv2d_0a_1x1/BatchNorm/beta': tf.get_variable(shape=[128],
+            #                                                                               name='InceptionV1/Mixed_4d/Branch_0/Conv2d_0a_1x1/BatchNorm/beta',trainable=False),
+            # 'InceptionV1/Mixed_4d/Branch_1/Conv2d_0a_1x1/BatchNorm/beta': tf.get_variable(shape=[128],
+            #                                                                               name='InceptionV1/Mixed_4d/Branch_1/Conv2d_0a_1x1/BatchNorm/beta',trainable=False),
+            # 'InceptionV1/Mixed_4d/Branch_1/Conv2d_0b_3x3/BatchNorm/beta': tf.get_variable(shape=[256],
+            #                                                                               name='InceptionV1/Mixed_4d/Branch_1/Conv2d_0b_3x3/BatchNorm/beta',trainable=False),
+            # 'InceptionV1/Mixed_4d/Branch_2/Conv2d_0a_1x1/BatchNorm/beta': tf.get_variable(shape=[24],
+            #                                                                               name='InceptionV1/Mixed_4d/Branch_2/Conv2d_0a_1x1/BatchNorm/beta',trainable=False),
+            # 'InceptionV1/Mixed_4d/Branch_2/Conv2d_0b_3x3/BatchNorm/beta': tf.get_variable(shape=[64],
+            #                                                                               name='InceptionV1/Mixed_4d/Branch_2/Conv2d_0b_3x3/BatchNorm/beta',trainable=False),
+            # 'InceptionV1/Mixed_4d/Branch_3/Conv2d_0b_1x1/BatchNorm/beta': tf.get_variable(shape=[64],
+            #                                                                               name='InceptionV1/Mixed_4d/Branch_3/Conv2d_0b_1x1/BatchNorm/beta',trainable=False),
+            # # sixth inception
+            # 'InceptionV1/Mixed_4e/Branch_0/Conv2d_0a_1x1/BatchNorm/beta': tf.get_variable(shape=[112],
+            #                                                                               name='InceptionV1/Mixed_4e/Branch_0/Conv2d_0a_1x1/BatchNorm/beta',trainable=False),
+            # 'InceptionV1/Mixed_4e/Branch_1/Conv2d_0a_1x1/BatchNorm/beta': tf.get_variable(shape=[144],
+            #                                                                               name='InceptionV1/Mixed_4e/Branch_1/Conv2d_0a_1x1/BatchNorm/beta',trainable=False),
+            # 'InceptionV1/Mixed_4e/Branch_1/Conv2d_0b_3x3/BatchNorm/beta': tf.get_variable(shape=[288],
+            #                                                                               name='InceptionV1/Mixed_4e/Branch_1/Conv2d_0b_3x3/BatchNorm/beta',trainable=False),
+            # 'InceptionV1/Mixed_4e/Branch_2/Conv2d_0a_1x1/BatchNorm/beta': tf.get_variable(shape=[32],
+            #                                                                               name='InceptionV1/Mixed_4e/Branch_2/Conv2d_0a_1x1/BatchNorm/beta',trainable=False),
+            # 'InceptionV1/Mixed_4e/Branch_2/Conv2d_0b_3x3/BatchNorm/beta': tf.get_variable(shape=[64],
+            #                                                                               name='InceptionV1/Mixed_4e/Branch_2/Conv2d_0b_3x3/BatchNorm/beta',trainable=False),
+            # 'InceptionV1/Mixed_4e/Branch_3/Conv2d_0b_1x1/BatchNorm/beta': tf.get_variable(shape=[64],
+            #                                                                               name='InceptionV1/Mixed_4e/Branch_3/Conv2d_0b_1x1/BatchNorm/beta',trainable=False),
+            # # seventh inception
+            # 'InceptionV1/Mixed_4f/Branch_0/Conv2d_0a_1x1/BatchNorm/beta': tf.get_variable(shape=[256],
+            #                                                                               name='InceptionV1/Mixed_4f/Branch_0/Conv2d_0a_1x1/BatchNorm/beta',trainable=False),
+            # 'InceptionV1/Mixed_4f/Branch_1/Conv2d_0a_1x1/BatchNorm/beta': tf.get_variable(shape=[160],
+            #                                                                               name='InceptionV1/Mixed_4f/Branch_1/Conv2d_0a_1x1/BatchNorm/beta',trainable=False),
+            # 'InceptionV1/Mixed_4f/Branch_1/Conv2d_0b_3x3/BatchNorm/beta': tf.get_variable(shape=[320],
+            #                                                                               name='InceptionV1/Mixed_4f/Branch_1/Conv2d_0b_3x3/BatchNorm/beta',trainable=False),
+            # 'InceptionV1/Mixed_4f/Branch_2/Conv2d_0a_1x1/BatchNorm/beta': tf.get_variable(shape=[32],
+            #                                                                               name='InceptionV1/Mixed_4f/Branch_2/Conv2d_0a_1x1/BatchNorm/beta',trainable=False),
+            # 'InceptionV1/Mixed_4f/Branch_2/Conv2d_0b_3x3/BatchNorm/beta': tf.get_variable(shape=[128],
+            #                                                                               name='InceptionV1/Mixed_4f/Branch_2/Conv2d_0b_3x3/BatchNorm/beta',trainable=False),
+            # 'InceptionV1/Mixed_4f/Branch_3/Conv2d_0b_1x1/BatchNorm/beta': tf.get_variable(shape=[128],
+            #                                                                               name='InceptionV1/Mixed_4f/Branch_3/Conv2d_0b_1x1/BatchNorm/beta',trainable=False),
+            # # eighth inception
+            # 'InceptionV1/Mixed_5b/Branch_0/Conv2d_0a_1x1/BatchNorm/beta': tf.get_variable(shape=[256],
+            #                                                                               name='InceptionV1/Mixed_5b/Branch_0/Conv2d_0a_1x1/BatchNorm/beta',trainable=False),
+            # 'InceptionV1/Mixed_5b/Branch_1/Conv2d_0a_1x1/BatchNorm/beta': tf.get_variable(shape=[160],
+            #                                                                               name='InceptionV1/Mixed_5b/Branch_1/Conv2d_0a_1x1/BatchNorm/beta',trainable=False),
+            # 'InceptionV1/Mixed_5b/Branch_1/Conv2d_0b_3x3/BatchNorm/beta': tf.get_variable(shape=[320],
+            #                                                                               name='InceptionV1/Mixed_5b/Branch_1/Conv2d_0b_3x3/BatchNorm/beta',trainable=False),
+            # 'InceptionV1/Mixed_5b/Branch_2/Conv2d_0a_1x1/BatchNorm/beta': tf.get_variable(shape=[32],
+            #                                                                               name='InceptionV1/Mixed_5b/Branch_2/Conv2d_0a_1x1/BatchNorm/beta',trainable=False),
+            # 'InceptionV1/Mixed_5b/Branch_2/Conv2d_0a_3x3/BatchNorm/beta': tf.get_variable(shape=[128],
+            #                                                                               name='InceptionV1/Mixed_5b/Branch_2/Conv2d_0a_3x3/BatchNorm/beta',trainable=False),
+            # 'InceptionV1/Mixed_5b/Branch_3/Conv2d_0b_1x1/BatchNorm/beta': tf.get_variable(shape=[128],
+            #                                                                               name='InceptionV1/Mixed_5b/Branch_3/Conv2d_0b_1x1/BatchNorm/beta',trainable=False),
+            # # ninth inception
+            # 'InceptionV1/Mixed_5c/Branch_0/Conv2d_0a_1x1/BatchNorm/beta': tf.get_variable(shape=[384],
+            #                                                                               name='InceptionV1/Mixed_5c/Branch_0/Conv2d_0a_1x1/BatchNorm/beta',trainable=False),
+            # 'InceptionV1/Mixed_5c/Branch_1/Conv2d_0a_1x1/BatchNorm/beta': tf.get_variable(shape=[192],
+            #                                                                               name='InceptionV1/Mixed_5c/Branch_1/Conv2d_0a_1x1/BatchNorm/beta',trainable=False),
+            # 'InceptionV1/Mixed_5c/Branch_1/Conv2d_0b_3x3/BatchNorm/beta': tf.get_variable(shape=[384],
+            #                                                                               name='InceptionV1/Mixed_5c/Branch_1/Conv2d_0b_3x3/BatchNorm/beta',trainable=False),
+            # 'InceptionV1/Mixed_5c/Branch_2/Conv2d_0a_1x1/BatchNorm/beta': tf.get_variable(shape=[48],
+            #                                                                               name='InceptionV1/Mixed_5c/Branch_2/Conv2d_0a_1x1/BatchNorm/beta',trainable=False),
+            # 'InceptionV1/Mixed_5c/Branch_2/Conv2d_0b_3x3/BatchNorm/beta': tf.get_variable(shape=[128],
+            #                                                                               name='InceptionV1/Mixed_5c/Branch_2/Conv2d_0b_3x3/BatchNorm/beta',trainable=False),
+            # 'InceptionV1/Mixed_5c/Branch_3/Conv2d_0b_1x1/BatchNorm/beta': tf.get_variable(shape=[128],
+            #                                                                               name='InceptionV1/Mixed_5c/Branch_3/Conv2d_0b_1x1/BatchNorm/beta',trainable=False),
+            # # moving means
+            # 'InceptionV1/Conv2d_1a_7x7/BatchNorm/moving_mean': tf.get_variable(shape=[64],
+            #                                                                    name='InceptionV1/Conv2d_1a_7x7/BatchNorm/moving_mean',
+            #                                                                    trainable=False),
+            # 'InceptionV1/Conv2d_2b_1x1/BatchNorm/moving_mean': tf.get_variable(shape=[64],
+            #                                                                    name='InceptionV1/Conv2d_2b_1x1/BatchNorm/moving_mean',trainable=False),
+            # 'InceptionV1/Conv2d_2c_3x3/BatchNorm/moving_mean': tf.get_variable(shape=[192],
+            #                                                                    name='InceptionV1/Conv2d_2c_3x3/BatchNorm/moving_mean',trainable=False),
+            # # first inception
+            # 'InceptionV1/Mixed_3b/Branch_0/Conv2d_0a_1x1/BatchNorm/moving_mean': tf.get_variable(shape=[64],
+            #                                                                                      name='InceptionV1/Mixed_3b/Branch_0/Conv2d_0a_1x1/BatchNorm/moving_mean',trainable=False),
+            # 'InceptionV1/Mixed_3b/Branch_1/Conv2d_0a_1x1/BatchNorm/moving_mean': tf.get_variable(shape=[96],
+            #                                                                                      name='InceptionV1/Mixed_3b/Branch_1/Conv2d_0a_1x1/BatchNorm/moving_mean',trainable=False),
+            # 'InceptionV1/Mixed_3b/Branch_1/Conv2d_0b_3x3/BatchNorm/moving_mean': tf.get_variable(shape=[128],
+            #                                                                                      name='InceptionV1/Mixed_3b/Branch_1/Conv2d_0b_3x3/BatchNorm/moving_mean',trainable=False),
+            # 'InceptionV1/Mixed_3b/Branch_2/Conv2d_0a_1x1/BatchNorm/moving_mean': tf.get_variable(shape=[16],
+            #                                                                                      name='InceptionV1/Mixed_3b/Branch_2/Conv2d_0a_1x1/BatchNorm/moving_mean',trainable=False),
+            # 'InceptionV1/Mixed_3b/Branch_2/Conv2d_0b_3x3/BatchNorm/moving_mean': tf.get_variable(shape=[32],
+            #                                                                                      name='InceptionV1/Mixed_3b/Branch_2/Conv2d_0b_3x3/BatchNorm/moving_mean',trainable=False),
+            # 'InceptionV1/Mixed_3b/Branch_3/Conv2d_0b_1x1/BatchNorm/moving_mean': tf.get_variable(shape=[32],
+            #                                                                                      name='InceptionV1/Mixed_3b/Branch_3/Conv2d_0b_1x1/BatchNorm/moving_mean',trainable=False),
+            # # second inception
+            # 'InceptionV1/Mixed_3c/Branch_0/Conv2d_0a_1x1/BatchNorm/moving_mean': tf.get_variable(shape=[128],
+            #                                                                                      name='InceptionV1/Mixed_3c/Branch_0/Conv2d_0a_1x1/BatchNorm/moving_mean',trainable=False),
+            # 'InceptionV1/Mixed_3c/Branch_1/Conv2d_0a_1x1/BatchNorm/moving_mean': tf.get_variable(shape=[128],
+            #                                                                                      name='InceptionV1/Mixed_3c/Branch_1/Conv2d_0a_1x1/BatchNorm/moving_mean',trainable=False),
+            # 'InceptionV1/Mixed_3c/Branch_1/Conv2d_0b_3x3/BatchNorm/moving_mean': tf.get_variable(shape=[192],
+            #                                                                                      name='InceptionV1/Mixed_3c/Branch_1/Conv2d_0b_3x3/BatchNorm/moving_mean',trainable=False),
+            # 'InceptionV1/Mixed_3c/Branch_2/Conv2d_0a_1x1/BatchNorm/moving_mean': tf.get_variable(shape=[32],
+            #                                                                                      name='InceptionV1/Mixed_3c/Branch_2/Conv2d_0a_1x1/BatchNorm/moving_mean',trainable=False),
+            # 'InceptionV1/Mixed_3c/Branch_2/Conv2d_0b_3x3/BatchNorm/moving_mean': tf.get_variable(shape=[96],
+            #                                                                                      name='InceptionV1/Mixed_3c/Branch_2/Conv2d_0b_3x3/BatchNorm/moving_mean',trainable=False),
+            # 'InceptionV1/Mixed_3c/Branch_3/Conv2d_0b_1x1/BatchNorm/moving_mean': tf.get_variable(shape=[64],
+            #                                                                                      name='InceptionV1/Mixed_3c/Branch_3/Conv2d_0b_1x1/BatchNorm/moving_mean',trainable=False),
+            # # third inception
+            # 'InceptionV1/Mixed_4b/Branch_0/Conv2d_0a_1x1/BatchNorm/moving_mean': tf.get_variable(shape=[192],
+            #                                                                                      name='InceptionV1/Mixed_4b/Branch_0/Conv2d_0a_1x1/BatchNorm/moving_mean',trainable=False),
+            # 'InceptionV1/Mixed_4b/Branch_1/Conv2d_0a_1x1/BatchNorm/moving_mean': tf.get_variable(shape=[96],
+            #                                                                                      name='InceptionV1/Mixed_4b/Branch_1/Conv2d_0a_1x1/BatchNorm/moving_mean',trainable=False),
+            # 'InceptionV1/Mixed_4b/Branch_1/Conv2d_0b_3x3/BatchNorm/moving_mean': tf.get_variable(shape=[208],
+            #                                                                                      name='InceptionV1/Mixed_4b/Branch_1/Conv2d_0b_3x3/BatchNorm/moving_mean',trainable=False),
+            # 'InceptionV1/Mixed_4b/Branch_2/Conv2d_0a_1x1/BatchNorm/moving_mean': tf.get_variable(shape=[16],
+            #                                                                                      name='InceptionV1/Mixed_4b/Branch_2/Conv2d_0a_1x1/BatchNorm/moving_mean',trainable=False),
+            # 'InceptionV1/Mixed_4b/Branch_2/Conv2d_0b_3x3/BatchNorm/moving_mean': tf.get_variable(shape=[48],
+            #                                                                                      name='InceptionV1/Mixed_4b/Branch_2/Conv2d_0b_3x3/BatchNorm/moving_mean',trainable=False),
+            # 'InceptionV1/Mixed_4b/Branch_3/Conv2d_0b_1x1/BatchNorm/moving_mean': tf.get_variable(shape=[64],
+            #                                                                                      name='InceptionV1/Mixed_4b/Branch_3/Conv2d_0b_1x1/BatchNorm/moving_mean',trainable=False),
+            # # fourth inception
+            # 'InceptionV1/Mixed_4c/Branch_0/Conv2d_0a_1x1/BatchNorm/moving_mean': tf.get_variable(shape=[160],
+            #                                                                                      name='InceptionV1/Mixed_4c/Branch_0/Conv2d_0a_1x1/BatchNorm/moving_mean',trainable=False),
+            # 'InceptionV1/Mixed_4c/Branch_1/Conv2d_0a_1x1/BatchNorm/moving_mean': tf.get_variable(shape=[112],
+            #                                                                                      name='InceptionV1/Mixed_4c/Branch_1/Conv2d_0a_1x1/BatchNorm/moving_mean',trainable=False),
+            # 'InceptionV1/Mixed_4c/Branch_1/Conv2d_0b_3x3/BatchNorm/moving_mean': tf.get_variable(shape=[224],
+            #                                                                                      name='InceptionV1/Mixed_4c/Branch_1/Conv2d_0b_3x3/BatchNorm/moving_mean',trainable=False),
+            # 'InceptionV1/Mixed_4c/Branch_2/Conv2d_0a_1x1/BatchNorm/moving_mean': tf.get_variable(shape=[24],
+            #                                                                                      name='InceptionV1/Mixed_4c/Branch_2/Conv2d_0a_1x1/BatchNorm/moving_mean',trainable=False),
+            # 'InceptionV1/Mixed_4c/Branch_2/Conv2d_0b_3x3/BatchNorm/moving_mean': tf.get_variable(shape=[64],
+            #                                                                                      name='InceptionV1/Mixed_4c/Branch_2/Conv2d_0b_3x3/BatchNorm/moving_mean',trainable=False),
+            # 'InceptionV1/Mixed_4c/Branch_3/Conv2d_0b_1x1/BatchNorm/moving_mean': tf.get_variable(shape=[64],
+            #                                                                                      name='InceptionV1/Mixed_4c/Branch_3/Conv2d_0b_1x1/BatchNorm/moving_mean',trainable=False),
+            # # fifth inception
+            # 'InceptionV1/Mixed_4d/Branch_0/Conv2d_0a_1x1/BatchNorm/moving_mean': tf.get_variable(shape=[128],
+            #                                                                                      name='InceptionV1/Mixed_4d/Branch_0/Conv2d_0a_1x1/BatchNorm/moving_mean',trainable=False),
+            # 'InceptionV1/Mixed_4d/Branch_1/Conv2d_0a_1x1/BatchNorm/moving_mean': tf.get_variable(shape=[128],
+            #                                                                                      name='InceptionV1/Mixed_4d/Branch_1/Conv2d_0a_1x1/BatchNorm/moving_mean',trainable=False),
+            # 'InceptionV1/Mixed_4d/Branch_1/Conv2d_0b_3x3/BatchNorm/moving_mean': tf.get_variable(shape=[256],
+            #                                                                                      name='InceptionV1/Mixed_4d/Branch_1/Conv2d_0b_3x3/BatchNorm/moving_mean',trainable=False),
+            # 'InceptionV1/Mixed_4d/Branch_2/Conv2d_0a_1x1/BatchNorm/moving_mean': tf.get_variable(shape=[24],
+            #                                                                                      name='InceptionV1/Mixed_4d/Branch_2/Conv2d_0a_1x1/BatchNorm/moving_mean',trainable=False),
+            # 'InceptionV1/Mixed_4d/Branch_2/Conv2d_0b_3x3/BatchNorm/moving_mean': tf.get_variable(shape=[64],
+            #                                                                                      name='InceptionV1/Mixed_4d/Branch_2/Conv2d_0b_3x3/BatchNorm/moving_mean',trainable=False),
+            # 'InceptionV1/Mixed_4d/Branch_3/Conv2d_0b_1x1/BatchNorm/moving_mean': tf.get_variable(shape=[64],
+            #                                                                                      name='InceptionV1/Mixed_4d/Branch_3/Conv2d_0b_1x1/BatchNorm/moving_mean',trainable=False),
+            # # sixth inception
+            # 'InceptionV1/Mixed_4e/Branch_0/Conv2d_0a_1x1/BatchNorm/moving_mean': tf.get_variable(shape=[112],
+            #                                                                                      name='InceptionV1/Mixed_4e/Branch_0/Conv2d_0a_1x1/BatchNorm/moving_mean',trainable=False),
+            # 'InceptionV1/Mixed_4e/Branch_1/Conv2d_0a_1x1/BatchNorm/moving_mean': tf.get_variable(shape=[144],
+            #                                                                                      name='InceptionV1/Mixed_4e/Branch_1/Conv2d_0a_1x1/BatchNorm/moving_mean',trainable=False),
+            # 'InceptionV1/Mixed_4e/Branch_1/Conv2d_0b_3x3/BatchNorm/moving_mean': tf.get_variable(shape=[288],
+            #                                                                                      name='InceptionV1/Mixed_4e/Branch_1/Conv2d_0b_3x3/BatchNorm/moving_mean',trainable=False),
+            # 'InceptionV1/Mixed_4e/Branch_2/Conv2d_0a_1x1/BatchNorm/moving_mean': tf.get_variable(shape=[32],
+            #                                                                                      name='InceptionV1/Mixed_4e/Branch_2/Conv2d_0a_1x1/BatchNorm/moving_mean',trainable=False),
+            # 'InceptionV1/Mixed_4e/Branch_2/Conv2d_0b_3x3/BatchNorm/moving_mean': tf.get_variable(shape=[64],
+            #                                                                                      name='InceptionV1/Mixed_4e/Branch_2/Conv2d_0b_3x3/BatchNorm/moving_mean',trainable=False),
+            # 'InceptionV1/Mixed_4e/Branch_3/Conv2d_0b_1x1/BatchNorm/moving_mean': tf.get_variable(shape=[64],
+            #                                                                                      name='InceptionV1/Mixed_4e/Branch_3/Conv2d_0b_1x1/BatchNorm/moving_mean',trainable=False),
+            # # seventh inception
+            # 'InceptionV1/Mixed_4f/Branch_0/Conv2d_0a_1x1/BatchNorm/moving_mean': tf.get_variable(shape=[256],
+            #                                                                                      name='InceptionV1/Mixed_4f/Branch_0/Conv2d_0a_1x1/BatchNorm/moving_mean',trainable=False),
+            # 'InceptionV1/Mixed_4f/Branch_1/Conv2d_0a_1x1/BatchNorm/moving_mean': tf.get_variable(shape=[160],
+            #                                                                                      name='InceptionV1/Mixed_4f/Branch_1/Conv2d_0a_1x1/BatchNorm/moving_mean',trainable=False),
+            # 'InceptionV1/Mixed_4f/Branch_1/Conv2d_0b_3x3/BatchNorm/moving_mean': tf.get_variable(shape=[320],
+            #                                                                                      name='InceptionV1/Mixed_4f/Branch_1/Conv2d_0b_3x3/BatchNorm/moving_mean',trainable=False),
+            # 'InceptionV1/Mixed_4f/Branch_2/Conv2d_0a_1x1/BatchNorm/moving_mean': tf.get_variable(shape=[32],
+            #                                                                                      name='InceptionV1/Mixed_4f/Branch_2/Conv2d_0a_1x1/BatchNorm/moving_mean',trainable=False),
+            # 'InceptionV1/Mixed_4f/Branch_2/Conv2d_0b_3x3/BatchNorm/moving_mean': tf.get_variable(shape=[128],
+            #                                                                                      name='InceptionV1/Mixed_4f/Branch_2/Conv2d_0b_3x3/BatchNorm/moving_mean',trainable=False),
+            # 'InceptionV1/Mixed_4f/Branch_3/Conv2d_0b_1x1/BatchNorm/moving_mean': tf.get_variable(shape=[128],
+            #                                                                                      name='InceptionV1/Mixed_4f/Branch_3/Conv2d_0b_1x1/BatchNorm/moving_mean',trainable=False),
+            # # eighth inception
+            # 'InceptionV1/Mixed_5b/Branch_0/Conv2d_0a_1x1/BatchNorm/moving_mean': tf.get_variable(shape=[256],
+            #                                                                                      name='InceptionV1/Mixed_5b/Branch_0/Conv2d_0a_1x1/BatchNorm/moving_mean',trainable=False),
+            # 'InceptionV1/Mixed_5b/Branch_1/Conv2d_0a_1x1/BatchNorm/moving_mean': tf.get_variable(shape=[160],
+            #                                                                                      name='InceptionV1/Mixed_5b/Branch_1/Conv2d_0a_1x1/BatchNorm/moving_mean',trainable=False),
+            # 'InceptionV1/Mixed_5b/Branch_1/Conv2d_0b_3x3/BatchNorm/moving_mean': tf.get_variable(shape=[320],
+            #                                                                                      name='InceptionV1/Mixed_5b/Branch_1/Conv2d_0b_3x3/BatchNorm/moving_mean',trainable=False),
+            # 'InceptionV1/Mixed_5b/Branch_2/Conv2d_0a_1x1/BatchNorm/moving_mean': tf.get_variable(shape=[32],
+            #                                                                                      name='InceptionV1/Mixed_5b/Branch_2/Conv2d_0a_1x1/BatchNorm/moving_mean',trainable=False),
+            # 'InceptionV1/Mixed_5b/Branch_2/Conv2d_0a_3x3/BatchNorm/moving_mean': tf.get_variable(shape=[128],
+            #                                                                                      name='InceptionV1/Mixed_5b/Branch_2/Conv2d_0a_3x3/BatchNorm/moving_mean',trainable=False),
+            # 'InceptionV1/Mixed_5b/Branch_3/Conv2d_0b_1x1/BatchNorm/moving_mean': tf.get_variable(shape=[128],
+            #                                                                                      name='InceptionV1/Mixed_5b/Branch_3/Conv2d_0b_1x1/BatchNorm/moving_mean',trainable=False),
+            # # ninth inception
+            # 'InceptionV1/Mixed_5c/Branch_0/Conv2d_0a_1x1/BatchNorm/moving_mean': tf.get_variable(shape=[384],
+            #                                                                                      name='InceptionV1/Mixed_5c/Branch_0/Conv2d_0a_1x1/BatchNorm/moving_mean',trainable=False),
+            # 'InceptionV1/Mixed_5c/Branch_1/Conv2d_0a_1x1/BatchNorm/moving_mean': tf.get_variable(shape=[192],
+            #                                                                                      name='InceptionV1/Mixed_5c/Branch_1/Conv2d_0a_1x1/BatchNorm/moving_mean',trainable=False),
+            # 'InceptionV1/Mixed_5c/Branch_1/Conv2d_0b_3x3/BatchNorm/moving_mean': tf.get_variable(shape=[384],
+            #                                                                                      name='InceptionV1/Mixed_5c/Branch_1/Conv2d_0b_3x3/BatchNorm/moving_mean',trainable=False),
+            # 'InceptionV1/Mixed_5c/Branch_2/Conv2d_0a_1x1/BatchNorm/moving_mean': tf.get_variable(shape=[48],
+            #                                                                                      name='InceptionV1/Mixed_5c/Branch_2/Conv2d_0a_1x1/BatchNorm/moving_mean',trainable=False),
+            # 'InceptionV1/Mixed_5c/Branch_2/Conv2d_0b_3x3/BatchNorm/moving_mean': tf.get_variable(shape=[128],
+            #                                                                                      name='InceptionV1/Mixed_5c/Branch_2/Conv2d_0b_3x3/BatchNorm/moving_mean',trainable=False),
+            # 'InceptionV1/Mixed_5c/Branch_3/Conv2d_0b_1x1/BatchNorm/moving_mean': tf.get_variable(shape=[128],
+            #                                                                                      name='InceptionV1/Mixed_5c/Branch_3/Conv2d_0b_1x1/BatchNorm/moving_mean',trainable=False),
+            # # moving variance
+            # 'InceptionV1/Conv2d_1a_7x7/BatchNorm/moving_variance': tf.get_variable(shape=[64],
+            #                                                                        name='InceptionV1/Conv2d_1a_7x7/BatchNorm/moving_variance',trainable=False),
+            # 'InceptionV1/Conv2d_2b_1x1/BatchNorm/moving_variance': tf.get_variable(shape=[64],
+            #                                                                        name='InceptionV1/Conv2d_2b_1x1/BatchNorm/moving_variance',trainable=False),
+            # 'InceptionV1/Conv2d_2c_3x3/BatchNorm/moving_variance': tf.get_variable(shape=[192],
+            #                                                                        name='InceptionV1/Conv2d_2c_3x3/BatchNorm/moving_variance',trainable=False),
+            # # first inception
+            # 'InceptionV1/Mixed_3b/Branch_0/Conv2d_0a_1x1/BatchNorm/moving_variance': tf.get_variable(shape=[64],
+            #                                                                                          name='InceptionV1/Mixed_3b/Branch_0/Conv2d_0a_1x1/BatchNorm/moving_variance',trainable=False),
+            # 'InceptionV1/Mixed_3b/Branch_1/Conv2d_0a_1x1/BatchNorm/moving_variance': tf.get_variable(shape=[96],
+            #                                                                                          name='InceptionV1/Mixed_3b/Branch_1/Conv2d_0a_1x1/BatchNorm/moving_variance',trainable=False),
+            # 'InceptionV1/Mixed_3b/Branch_1/Conv2d_0b_3x3/BatchNorm/moving_variance': tf.get_variable(shape=[128],
+            #                                                                                          name='InceptionV1/Mixed_3b/Branch_1/Conv2d_0b_3x3/BatchNorm/moving_variance',trainable=False),
+            # 'InceptionV1/Mixed_3b/Branch_2/Conv2d_0a_1x1/BatchNorm/moving_variance': tf.get_variable(shape=[16],
+            #                                                                                          name='InceptionV1/Mixed_3b/Branch_2/Conv2d_0a_1x1/BatchNorm/moving_variance',trainable=False),
+            # 'InceptionV1/Mixed_3b/Branch_2/Conv2d_0b_3x3/BatchNorm/moving_variance': tf.get_variable(shape=[32],
+            #                                                                                          name='InceptionV1/Mixed_3b/Branch_2/Conv2d_0b_3x3/BatchNorm/moving_variance',trainable=False),
+            # 'InceptionV1/Mixed_3b/Branch_3/Conv2d_0b_1x1/BatchNorm/moving_variance': tf.get_variable(shape=[32],
+            #                                                                                          name='InceptionV1/Mixed_3b/Branch_3/Conv2d_0b_1x1/BatchNorm/moving_variance',trainable=False),
+            # # second inception
+            # 'InceptionV1/Mixed_3c/Branch_0/Conv2d_0a_1x1/BatchNorm/moving_variance': tf.get_variable(shape=[128],
+            #                                                                                          name='InceptionV1/Mixed_3c/Branch_0/Conv2d_0a_1x1/BatchNorm/moving_variance',trainable=False),
+            # 'InceptionV1/Mixed_3c/Branch_1/Conv2d_0a_1x1/BatchNorm/moving_variance': tf.get_variable(shape=[128],
+            #                                                                                          name='InceptionV1/Mixed_3c/Branch_1/Conv2d_0a_1x1/BatchNorm/moving_variance',trainable=False),
+            # 'InceptionV1/Mixed_3c/Branch_1/Conv2d_0b_3x3/BatchNorm/moving_variance': tf.get_variable(shape=[192],
+            #                                                                                          name='InceptionV1/Mixed_3c/Branch_1/Conv2d_0b_3x3/BatchNorm/moving_variance',trainable=False),
+            # 'InceptionV1/Mixed_3c/Branch_2/Conv2d_0a_1x1/BatchNorm/moving_variance': tf.get_variable(shape=[32],
+            #                                                                                          name='InceptionV1/Mixed_3c/Branch_2/Conv2d_0a_1x1/BatchNorm/moving_variance',trainable=False),
+            # 'InceptionV1/Mixed_3c/Branch_2/Conv2d_0b_3x3/BatchNorm/moving_variance': tf.get_variable(shape=[96],
+            #                                                                                          name='InceptionV1/Mixed_3c/Branch_2/Conv2d_0b_3x3/BatchNorm/moving_variance',trainable=False),
+            # 'InceptionV1/Mixed_3c/Branch_3/Conv2d_0b_1x1/BatchNorm/moving_variance': tf.get_variable(shape=[64],
+            #                                                                                          name='InceptionV1/Mixed_3c/Branch_3/Conv2d_0b_1x1/BatchNorm/moving_variance',trainable=False),
+            # # third inception
+            # 'InceptionV1/Mixed_4b/Branch_0/Conv2d_0a_1x1/BatchNorm/moving_variance': tf.get_variable(shape=[192],
+            #                                                                                          name='InceptionV1/Mixed_4b/Branch_0/Conv2d_0a_1x1/BatchNorm/moving_variance',trainable=False),
+            # 'InceptionV1/Mixed_4b/Branch_1/Conv2d_0a_1x1/BatchNorm/moving_variance': tf.get_variable(shape=[96],
+            #                                                                                          name='InceptionV1/Mixed_4b/Branch_1/Conv2d_0a_1x1/BatchNorm/moving_variance',trainable=False),
+            # 'InceptionV1/Mixed_4b/Branch_1/Conv2d_0b_3x3/BatchNorm/moving_variance': tf.get_variable(shape=[208],
+            #                                                                                          name='InceptionV1/Mixed_4b/Branch_1/Conv2d_0b_3x3/BatchNorm/moving_variance',trainable=False),
+            # 'InceptionV1/Mixed_4b/Branch_2/Conv2d_0a_1x1/BatchNorm/moving_variance': tf.get_variable(shape=[16],
+            #                                                                                          name='InceptionV1/Mixed_4b/Branch_2/Conv2d_0a_1x1/BatchNorm/moving_variance',trainable=False),
+            # 'InceptionV1/Mixed_4b/Branch_2/Conv2d_0b_3x3/BatchNorm/moving_variance': tf.get_variable(shape=[48],
+            #                                                                                          name='InceptionV1/Mixed_4b/Branch_2/Conv2d_0b_3x3/BatchNorm/moving_variance',trainable=False),
+            # 'InceptionV1/Mixed_4b/Branch_3/Conv2d_0b_1x1/BatchNorm/moving_variance': tf.get_variable(shape=[64],
+            #                                                                                          name='InceptionV1/Mixed_4b/Branch_3/Conv2d_0b_1x1/BatchNorm/moving_variance',trainable=False),
+            # # fourth inception
+            # 'InceptionV1/Mixed_4c/Branch_0/Conv2d_0a_1x1/BatchNorm/moving_variance': tf.get_variable(shape=[160],
+            #                                                                                          name='InceptionV1/Mixed_4c/Branch_0/Conv2d_0a_1x1/BatchNorm/moving_variance',trainable=False),
+            # 'InceptionV1/Mixed_4c/Branch_1/Conv2d_0a_1x1/BatchNorm/moving_variance': tf.get_variable(shape=[112],
+            #                                                                                          name='InceptionV1/Mixed_4c/Branch_1/Conv2d_0a_1x1/BatchNorm/moving_variance',trainable=False),
+            # 'InceptionV1/Mixed_4c/Branch_1/Conv2d_0b_3x3/BatchNorm/moving_variance': tf.get_variable(shape=[224],
+            #                                                                                          name='InceptionV1/Mixed_4c/Branch_1/Conv2d_0b_3x3/BatchNorm/moving_variance',trainable=False),
+            # 'InceptionV1/Mixed_4c/Branch_2/Conv2d_0a_1x1/BatchNorm/moving_variance': tf.get_variable(shape=[24],
+            #                                                                                          name='InceptionV1/Mixed_4c/Branch_2/Conv2d_0a_1x1/BatchNorm/moving_variance',trainable=False),
+            # 'InceptionV1/Mixed_4c/Branch_2/Conv2d_0b_3x3/BatchNorm/moving_variance': tf.get_variable(shape=[64],
+            #                                                                                          name='InceptionV1/Mixed_4c/Branch_2/Conv2d_0b_3x3/BatchNorm/moving_variance',trainable=False),
+            # 'InceptionV1/Mixed_4c/Branch_3/Conv2d_0b_1x1/BatchNorm/moving_variance': tf.get_variable(shape=[64],
+            #                                                                                          name='InceptionV1/Mixed_4c/Branch_3/Conv2d_0b_1x1/BatchNorm/moving_variance',trainable=False),
+            # # fifth inception
+            # 'InceptionV1/Mixed_4d/Branch_0/Conv2d_0a_1x1/BatchNorm/moving_variance': tf.get_variable(shape=[128],
+            #                                                                                          name='InceptionV1/Mixed_4d/Branch_0/Conv2d_0a_1x1/BatchNorm/moving_variance',trainable=False),
+            # 'InceptionV1/Mixed_4d/Branch_1/Conv2d_0a_1x1/BatchNorm/moving_variance': tf.get_variable(shape=[128],
+            #                                                                                          name='InceptionV1/Mixed_4d/Branch_1/Conv2d_0a_1x1/BatchNorm/moving_variance',trainable=False),
+            # 'InceptionV1/Mixed_4d/Branch_1/Conv2d_0b_3x3/BatchNorm/moving_variance': tf.get_variable(shape=[256],
+            #                                                                                          name='InceptionV1/Mixed_4d/Branch_1/Conv2d_0b_3x3/BatchNorm/moving_variance',trainable=False),
+            # 'InceptionV1/Mixed_4d/Branch_2/Conv2d_0a_1x1/BatchNorm/moving_variance': tf.get_variable(shape=[24],
+            #                                                                                          name='InceptionV1/Mixed_4d/Branch_2/Conv2d_0a_1x1/BatchNorm/moving_variance',trainable=False),
+            # 'InceptionV1/Mixed_4d/Branch_2/Conv2d_0b_3x3/BatchNorm/moving_variance': tf.get_variable(shape=[64],
+            #                                                                                          name='InceptionV1/Mixed_4d/Branch_2/Conv2d_0b_3x3/BatchNorm/moving_variance',trainable=False),
+            # 'InceptionV1/Mixed_4d/Branch_3/Conv2d_0b_1x1/BatchNorm/moving_variance': tf.get_variable(shape=[64],
+            #                                                                                          name='InceptionV1/Mixed_4d/Branch_3/Conv2d_0b_1x1/BatchNorm/moving_variance',trainable=False),
+            # # sixth inception
+            # 'InceptionV1/Mixed_4e/Branch_0/Conv2d_0a_1x1/BatchNorm/moving_variance': tf.get_variable(shape=[112],
+            #                                                                                          name='InceptionV1/Mixed_4e/Branch_0/Conv2d_0a_1x1/BatchNorm/moving_variance',trainable=False),
+            # 'InceptionV1/Mixed_4e/Branch_1/Conv2d_0a_1x1/BatchNorm/moving_variance': tf.get_variable(shape=[144],
+            #                                                                                          name='InceptionV1/Mixed_4e/Branch_1/Conv2d_0a_1x1/BatchNorm/moving_variance',trainable=False),
+            # 'InceptionV1/Mixed_4e/Branch_1/Conv2d_0b_3x3/BatchNorm/moving_variance': tf.get_variable(shape=[288],
+            #                                                                                          name='InceptionV1/Mixed_4e/Branch_1/Conv2d_0b_3x3/BatchNorm/moving_variance',trainable=False),
+            # 'InceptionV1/Mixed_4e/Branch_2/Conv2d_0a_1x1/BatchNorm/moving_variance': tf.get_variable(shape=[32],
+            #                                                                                          name='InceptionV1/Mixed_4e/Branch_2/Conv2d_0a_1x1/BatchNorm/moving_variance',trainable=False),
+            # 'InceptionV1/Mixed_4e/Branch_2/Conv2d_0b_3x3/BatchNorm/moving_variance': tf.get_variable(shape=[64],
+            #                                                                                          name='InceptionV1/Mixed_4e/Branch_2/Conv2d_0b_3x3/BatchNorm/moving_variance',trainable=False),
+            # 'InceptionV1/Mixed_4e/Branch_3/Conv2d_0b_1x1/BatchNorm/moving_variance': tf.get_variable(shape=[64],
+            #                                                                                          name='InceptionV1/Mixed_4e/Branch_3/Conv2d_0b_1x1/BatchNorm/moving_variance',trainable=False),
+            # # seventh inception
+            # 'InceptionV1/Mixed_4f/Branch_0/Conv2d_0a_1x1/BatchNorm/moving_variance': tf.get_variable(shape=[256],
+            #                                                                                          name='InceptionV1/Mixed_4f/Branch_0/Conv2d_0a_1x1/BatchNorm/moving_variance',trainable=False),
+            # 'InceptionV1/Mixed_4f/Branch_1/Conv2d_0a_1x1/BatchNorm/moving_variance': tf.get_variable(shape=[160],
+            #                                                                                          name='InceptionV1/Mixed_4f/Branch_1/Conv2d_0a_1x1/BatchNorm/moving_variance',trainable=False),
+            # 'InceptionV1/Mixed_4f/Branch_1/Conv2d_0b_3x3/BatchNorm/moving_variance': tf.get_variable(shape=[320],
+            #                                                                                          name='InceptionV1/Mixed_4f/Branch_1/Conv2d_0b_3x3/BatchNorm/moving_variance',trainable=False),
+            # 'InceptionV1/Mixed_4f/Branch_2/Conv2d_0a_1x1/BatchNorm/moving_variance': tf.get_variable(shape=[32],
+            #                                                                                          name='InceptionV1/Mixed_4f/Branch_2/Conv2d_0a_1x1/BatchNorm/moving_variance',trainable=False),
+            # 'InceptionV1/Mixed_4f/Branch_2/Conv2d_0b_3x3/BatchNorm/moving_variance': tf.get_variable(shape=[128],
+            #                                                                                          name='InceptionV1/Mixed_4f/Branch_2/Conv2d_0b_3x3/BatchNorm/moving_variance',trainable=False),
+            # 'InceptionV1/Mixed_4f/Branch_3/Conv2d_0b_1x1/BatchNorm/moving_variance': tf.get_variable(shape=[128],
+            #                                                                                          name='InceptionV1/Mixed_4f/Branch_3/Conv2d_0b_1x1/BatchNorm/moving_variance',trainable=False),
+            # # eighth inception
+            # 'InceptionV1/Mixed_5b/Branch_0/Conv2d_0a_1x1/BatchNorm/moving_variance': tf.get_variable(shape=[256],
+            #                                                                                          name='InceptionV1/Mixed_5b/Branch_0/Conv2d_0a_1x1/BatchNorm/moving_variance',trainable=False),
+            # 'InceptionV1/Mixed_5b/Branch_1/Conv2d_0a_1x1/BatchNorm/moving_variance': tf.get_variable(shape=[160],
+            #                                                                                          name='InceptionV1/Mixed_5b/Branch_1/Conv2d_0a_1x1/BatchNorm/moving_variance',trainable=False),
+            # 'InceptionV1/Mixed_5b/Branch_1/Conv2d_0b_3x3/BatchNorm/moving_variance': tf.get_variable(shape=[320],
+            #                                                                                          name='InceptionV1/Mixed_5b/Branch_1/Conv2d_0b_3x3/BatchNorm/moving_variance',trainable=False),
+            # 'InceptionV1/Mixed_5b/Branch_2/Conv2d_0a_1x1/BatchNorm/moving_variance': tf.get_variable(shape=[32],
+            #                                                                                          name='InceptionV1/Mixed_5b/Branch_2/Conv2d_0a_1x1/BatchNorm/moving_variance',trainable=False),
+            # 'InceptionV1/Mixed_5b/Branch_2/Conv2d_0a_3x3/BatchNorm/moving_variance': tf.get_variable(shape=[128],
+            #                                                                                          name='InceptionV1/Mixed_5b/Branch_2/Conv2d_0a_3x3/BatchNorm/moving_variance',trainable=False),
+            # 'InceptionV1/Mixed_5b/Branch_3/Conv2d_0b_1x1/BatchNorm/moving_variance': tf.get_variable(shape=[128],
+            #                                                                                          name='InceptionV1/Mixed_5b/Branch_3/Conv2d_0b_1x1/BatchNorm/moving_variance',trainable=False),
+            # # ninth inception
+            # 'InceptionV1/Mixed_5c/Branch_0/Conv2d_0a_1x1/BatchNorm/moving_variance': tf.get_variable(shape=[384],
+            #                                                                                          name='InceptionV1/Mixed_5c/Branch_0/Conv2d_0a_1x1/BatchNorm/moving_variance',trainable=False),
+            # 'InceptionV1/Mixed_5c/Branch_1/Conv2d_0a_1x1/BatchNorm/moving_variance': tf.get_variable(shape=[192],
+            #                                                                                          name='InceptionV1/Mixed_5c/Branch_1/Conv2d_0a_1x1/BatchNorm/moving_variance',trainable=False),
+            # 'InceptionV1/Mixed_5c/Branch_1/Conv2d_0b_3x3/BatchNorm/moving_variance': tf.get_variable(shape=[384],
+            #                                                                                          name='InceptionV1/Mixed_5c/Branch_1/Conv2d_0b_3x3/BatchNorm/moving_variance',trainable=False),
+            # 'InceptionV1/Mixed_5c/Branch_2/Conv2d_0a_1x1/BatchNorm/moving_variance': tf.get_variable(shape=[48],
+            #                                                                                          name='InceptionV1/Mixed_5c/Branch_2/Conv2d_0a_1x1/BatchNorm/moving_variance',trainable=False),
+            # 'InceptionV1/Mixed_5c/Branch_2/Conv2d_0b_3x3/BatchNorm/moving_variance': tf.get_variable(shape=[128],
+            #                                                                                          name='InceptionV1/Mixed_5c/Branch_2/Conv2d_0b_3x3/BatchNorm/moving_variance',trainable=False),
+            # 'InceptionV1/Mixed_5c/Branch_3/Conv2d_0b_1x1/BatchNorm/moving_variance': tf.get_variable(shape=[128],
+            #                                                                                          name='InceptionV1/Mixed_5c/Branch_3/Conv2d_0b_1x1/BatchNorm/moving_variance',trainable=False)
+
         }
         return variables
     def CNN_Metric_Model(self,x):
@@ -387,14 +799,16 @@ class CNN_Triplet_Metric(object):
         #layer 1 - max pool
         h_pool1 = tf.nn.max_pool(h_conv1, ksize=[1, 3, 3, 1],\
                                  strides=[1, 2, 2, 1], padding='SAME')
-        tt = h_pool1
+
         #layer 1 -  BN
         beta_1 = self.var_dict['InceptionV1/Conv2d_1a_7x7/BatchNorm/beta']
         moving_mean_1 = self.var_dict['InceptionV1/Conv2d_1a_7x7/BatchNorm/moving_mean']
         moving_variance_1 = self.var_dict['InceptionV1/Conv2d_1a_7x7/BatchNorm/moving_variance']
-        h_bn1 = tf.nn.batch_normalization(h_pool1,offset=beta_1,\
-                                              mean=moving_mean_1, \
-                                              variance=moving_variance_1,scale=None,variance_epsilon=0.001)
+        # h_bn1 = tf.nn.batch_normalization(h_pool1,offset=beta_1,\
+        #                                       mean=moving_mean_1, \
+        #                                       variance=moving_variance_1,scale=None,variance_epsilon=0.1)
+        h_bn1 = tf.add(tf.div(tf.subtract(h_pool1, moving_mean_1),tf.add(moving_variance_1,tf.constant(0.01))),beta_1)
+        test = h_bn1
         #layer 2 - conv
         w_2 = self.var_dict['InceptionV1/Conv2d_2b_1x1/weights']
         h_conv2 = tf.nn.conv2d(h_bn1, w_2, strides=[1, 1, 1, 1], padding='SAME')
@@ -1000,8 +1414,7 @@ class CNN_Triplet_Metric(object):
         b_58 = tf.get_variable(shape=[64],name='fc_layer_0/bias')
         nets = tf.reshape(nets,[-1,1024])
         nets = tf.add(tf.matmul(nets,w_58),b_58)
-
-        return nets,tt
+        return nets,test
 
     def triplet_loss(slef,margins, oa, op, on):
         margin_0 = margins[0]
@@ -1041,8 +1454,8 @@ class CNN_Triplet_Metric(object):
                 loss = tf.reduce_mean(losses)
 
         # write summary
-        tf.summary.scalar('random_negative_loss', rand_neg)
-        tf.summary.scalar('positive_loss', pos)
+        # tf.summary.scalar('random_negative_loss', rand_neg)
+        # tf.summary.scalar('positive_loss', pos)
         tf.summary.scalar('total_loss', loss)
 
         return loss, eucd_p, eucd_n1, eucd_n2
