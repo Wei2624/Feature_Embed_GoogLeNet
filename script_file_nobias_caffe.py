@@ -111,47 +111,43 @@ class CNN_Triplet_Metric(object):
         #     print("Epoch:", '%04d' % (epoch + 1), "cost=", "{:.9f}".format(cost))
 
         print 'read test data'
-        # with h5py.File("validation_images_crop15_square256.mat") as f:
-        #     img_data = [f[element[0]][:] for element in f['validation_images/img']]
-        img_data = np.memmap('val_set_for_tf.dat',dtype=np.uint8,mode='r',shape=(60502,3,256,256))
+        with h5py.File("validation_images_crop15_square256.mat") as f:
+            img_data = [f[element[0]][:] for element in f['validation_images/img']]
         print 'done reading'
         img_data = np.asarray(img_data)
         img_data = np.transpose(img_data, (0, 2, 3, 1))
-        # print np.sum(img_data[0,:,:,:]!=255)
-
+        print np.sum(img_data[0,:,:,:]!=255)
+        sys.exit()
         # print 'the imgag data size is: ' + str(img_data.shape)
 
-        results = np.zeros((60500, 1024),dtype=np.float32)
+        # results = np.zeros((60500, 1024),dtype=np.float32)
+		#
+        # ptr = 0
+        # no_of_batches_test = int(img_data.shape[0] / 100)
+        # for k in range(no_of_batches_test):
+        #     print results.shape[0]
+        #     inp = img_data[ptr:ptr + 100,:,:,:]
+        #     imean = np.tile(image_mean, (100, 1, 1, 1))
+        #     inp = np.float32(inp) - np.float32(imean)
+        #     inp = inp[:, 15:239, 15:239, :]
+		#
+        #     embeded_feat = self.sess.run([a_output,tt1], feed_dict={img_a: inp})
+        #     results[ptr:ptr+100,:] = embeded_feat[0]
+        #     ptr += 100
 
-        ptr = 0
-        no_of_batches_test = int(img_data.shape[0] / 100)
-        for k in range(no_of_batches_test):
-            print ptr
-            inp = img_data[ptr:ptr + 100,:,:,:]
-            imean = np.tile(image_mean, (100, 1, 1, 1))
-            inp = np.float32(inp) - np.float32(imean)
-            inp = inp[:, 15:239, 15:239, :]
-
-            embeded_feat = self.sess.run([a_output,tt1], feed_dict={img_a: inp})
-            results[ptr:ptr+100,:] = embeded_feat[0]
-            ptr += 100
-
-
-        # test_idty = np.ones((1,256,256,3),dtype='f8')
-        # test_idty -= image_mean
-        # test_idty = test_idty[:, 14:241, 14:241, :]
-        # #test_idty = np.random.rand(1,227,227,3)
-        # with h5py.File('test_idty.h5','w') as H:
-        #     H.create_dataset('img', data=np.transpose(test_idty,(0,3,1,2)))
-        # with open('test_h5_idty_list.txt','w') as L:
-        #     L.write( '/home/wei/deep_metric/test_idty.h5' )
-        # embeded_feat = self.sess.run([a_output, tt1], feed_dict={img_a: test_idty})
-        # scipy.io.savemat('test_tf.mat',mdict={'test':embeded_feat[1]})
-        # print embeded_feat[1].shape
-        # print embeded_feat[1][0, :, :,5]
-
-
-        np.savetxt("results_tf.csv", results, delimiter=",")
+        test_idty = np.ones((1,256,256,3),dtype='f8')
+        test_idty -= image_mean
+        test_idty = test_idty[:, 14:241, 14:241, :]
+        #test_idty = np.random.rand(1,227,227,3)
+        with h5py.File('test_idty.h5','w') as H:
+            H.create_dataset('img', data=np.transpose(test_idty,(0,3,1,2)))
+        with open('test_h5_idty_list.txt','w') as L:
+            L.write( '/home/wei/deep_metric/test_idty.h5' )
+        embeded_feat = self.sess.run([a_output, tt1], feed_dict={img_a: test_idty})
+        scipy.io.savemat('test_tf.mat',mdict={'test':embeded_feat[1]})
+        print embeded_feat[1].shape
+        print embeded_feat[1][0, :, :,5]
+        # np.savetxt("results_tf.csv", results, delimiter=",")
             # print results.shape
 
     def Variables_Dict(self):
@@ -441,7 +437,7 @@ class CNN_Triplet_Metric(object):
         h_conv1 = tf.pad(h_conv1,paddings=padding_format)
         h_pool1 = tf.nn.max_pool(h_conv1, ksize=[1, 3, 3, 1],
                                  strides=[1, 2, 2, 1], padding='VALID')
-        h_pool1 = tf.nn.local_response_normalization(h_pool1,depth_radius=5,alpha=0.0001,beta=0.75)
+        #h_pool1 = tf.nn.local_response_normalization(h_pool1,depth_radius=5,alpha=0.0001,beta=0.75)
         #layer 2 - conv
         w_2 = self.var_dict['InceptionV1/Conv2d_2b_1x1/weights']
         b_2 = self.var_dict['InceptionV1/Conv2d_2b_1x1/bias']
@@ -455,7 +451,7 @@ class CNN_Triplet_Metric(object):
         b_3 = self.var_dict['InceptionV1/Conv2d_2c_3x3/bias']
         h_conv3 = tf.nn.conv2d(h_conv2, w_3, strides=[1, 1, 1, 1], padding='VALID') + b_3
         h_conv3 = tf.nn.relu(h_conv3)
-        h_conv3 = tf.nn.local_response_normalization(h_conv3, depth_radius=5, alpha=0.0001, beta=0.75)
+        #h_conv3 = tf.nn.local_response_normalization(h_conv3, depth_radius=5, alpha=0.0001, beta=0.75)
 
         #layer 3 - max pool
         h_pool3 = tf.nn.max_pool(h_conv3, ksize=[1, 3, 3, 1],
