@@ -10,3 +10,7 @@ This Tensorflow version of GoogLeNet V1 has also been tested on Stanford Online 
 | F1 Measure      | 0.11 | 0.109 |
 | NMI     | 0.839     |   0.833 |
 
+**NOTE: there still exists little difference between the two because there is a function called Local Response Normalization which is implemented in different ways in Tensorflow and Caffe.**
+
+This repo is stil under development. 
+
