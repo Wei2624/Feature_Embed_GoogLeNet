@@ -1,5 +1,5 @@
 # Feature_Embed_GoogLeNet
-This repo has reconstructed the model according to [GoogLeNet V1](https://arxiv.org/abs/1409.4842) in Tensorflow. 
+This repo has reconstructed the model according to [GoogLeNet V1](https://arxiv.org/abs/1409.4842) in Tensorflow. If you want to directly check the model structure, you can jump to `GoogLeNet_V1_Model.py` file. 
 
 The weights are directly from the `.caffemodel` file according to [Caffe Repo](https://github.com/BVLC/caffe/tree/master/models/bvlc_googlenet). In addition, the performance has been tested against with `train_val.prototext` in the repo. As a result, the Tensorflow version in this repo can mirror the performance of caffe model. 
 
