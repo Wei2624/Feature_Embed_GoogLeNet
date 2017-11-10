@@ -12,5 +12,5 @@ This Tensorflow version of GoogLeNet V1 has also been tested on Stanford Online 
 
 **NOTE: there still exists little difference between the two because there is a function called Local Response Normalization which is implemented in different ways in Tensorflow and Caffe.**
 
-This repo is stil under development. Coming next: **Rocover the results of the [paper](https://arxiv.org/abs/1703.07464)**
+This repo is stil under development. Coming next: **Recover the results of the [paper](https://arxiv.org/abs/1703.07464)**
 
