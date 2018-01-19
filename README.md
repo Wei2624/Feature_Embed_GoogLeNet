@@ -6,7 +6,7 @@ The weights are directly from the `.caffemodel` file according to [Caffe Repo](h
 This Tensorflow version of GoogLeNet V1 has also been tested on Stanford Online Product Dataset for metric learning task according to the [paper](http://cvgl.stanford.edu/papers/song_cvpr16.pdf) where Caffe is used. On the validation set, the comparison between Tensorflow version and Caffe version is shown below. 
 
 | Tables        | Tensorflow Version          | Caffe Version  |
-| ------------- |:-------------:| -----:|
+| :-------------:|:-------------:|: -----:|
 | F1 Measure      | 0.11 | 0.109 |
 | NMI     | 0.839     |   0.833 |
 
